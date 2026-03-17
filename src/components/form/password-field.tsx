@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
+import type { FieldValues, UseFormRegister } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ interface PasswordFieldProps {
   error?: string;
   value?: string;
   onChange?: (_e: React.ChangeEvent<HTMLInputElement>) => void;
-  register?: any;
+  register?: UseFormRegister<FieldValues>;
 }
 
 export function PasswordField({

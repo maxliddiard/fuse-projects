@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { gmail_v1 } from "googleapis";
 
 import prisma from "@/lib/prisma/client";
@@ -210,9 +211,8 @@ export class EmailSyncService {
     return match ? match[1].replace(/"/g, "").trim() : undefined;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async saveAddresses(
-    tx: any,
+    tx: Prisma.TransactionClient,
     messageId: string,
     headers: Record<string, string>,
   ) {
@@ -268,9 +268,8 @@ export class EmailSyncService {
     return mapping[type.toLowerCase()] || "FROM";
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async saveMailboxAssociations(
-    tx: any,
+    tx: Prisma.TransactionClient,
     messageId: string,
     labelIds: string[],
   ) {

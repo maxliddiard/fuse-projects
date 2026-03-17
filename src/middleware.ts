@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import type { JWT } from "next-auth/jwt";
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
@@ -7,7 +7,7 @@ export default withAuth({
   },
 
   callbacks: {
-    authorized({ token }: { token: any; req: NextRequest }) {
+    authorized({ token }: { token: JWT | null }) {
       return !!token;
     },
   },

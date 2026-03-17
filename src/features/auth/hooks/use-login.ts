@@ -46,7 +46,7 @@ export function useLogin(): UseLoginResult {
       if (result?.ok) {
         const session = await waitForSession();
 
-        if (!(session?.user as any)?.emailVerifiedAt) {
+        if (!session?.user?.emailVerifiedAt) {
           router.push(`/auth/unverified?email=${email}`);
         } else {
           const redirectUrl = searchParams.get("redirect");
