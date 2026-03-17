@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Home() {
+  const { data: session } = useSession();
+
   return (
     <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
       <nav className="flex items-center gap-6 border-b border-zinc-200 px-8 py-4 dark:border-zinc-800">
@@ -19,6 +24,14 @@ export default function Home() {
         >
           Inbox
         </Link>
+        {session && (
+          <button
+            onClick={() => signOut({ callbackUrl: "/auth/login" })}
+            className="ml-auto text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+          >
+            Sign out
+          </button>
+        )}
       </nav>
 
       <main className="mx-auto max-w-3xl px-8 py-16">
