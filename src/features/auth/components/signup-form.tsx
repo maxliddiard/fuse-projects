@@ -32,10 +32,33 @@ export default function SignupForm() {
     );
   }
 
+  const brandPanel = (
+    <div className="flex flex-col gap-8">
+      <span className="text-2xl font-light text-foreground">Fuse Projects</span>
+
+      <div className="flex flex-col gap-4">
+        <h1 className="text-4xl font-light leading-tight text-muted-foreground">
+          <span className="text-foreground font-medium">Try it for free.</span>{" "}
+          Turn client emails into branded deliverables in less than{" "}
+          <span className="text-foreground font-medium">5 minutes</span>.
+        </h1>
+        <p className="text text-muted-foreground leading-relaxed">
+          Your AI associate reads emails, storylines, creates and formats presentations and models for you.
+          Stop spending Sunday nights on deliverables.
+        </p>
+      </div>
+    </div>
+  );
+
   return (
     <AuthCard
       title="Create Your Account"
       description="Sign up to get started."
+      leftPanel={brandPanel}
+      leftPanelStyle={{
+        background:
+          "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)",
+      }}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <div className="grid gap-2">
@@ -47,7 +70,7 @@ export default function SignupForm() {
             {...register("email")}
           />
           {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message}</p>
+            <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -70,7 +93,7 @@ export default function SignupForm() {
         </Button>
 
         {message && status === "error" && (
-          <p className="text-sm text-red-500">{message}</p>
+          <p className="text-sm text-destructive">{message}</p>
         )}
 
         <div className="text-center text-sm">

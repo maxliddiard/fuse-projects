@@ -65,14 +65,14 @@ export function MessageTable({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-zinc-50"></div>
+        <div className="animate-spin h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   if (messages.length === 0) {
     return (
-      <div className="text-center p-12 text-zinc-500 dark:text-zinc-400">
+      <div className="text-center p-12 text-muted-foreground">
         No messages in this mailbox
       </div>
     );
@@ -90,7 +90,7 @@ export function MessageTable({
       </div>
 
       {/* Message Table */}
-      <div className="border rounded-lg flex-1 overflow-hidden">
+      <div className="border border-border flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
           <Table>
             <TableHeader>
@@ -108,10 +108,9 @@ export function MessageTable({
                 <TableRow
                   key={message.id}
                   className={cn(
-                    "cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors",
-                    selectedMessage?.id === message.id &&
-                      "bg-zinc-100 dark:bg-zinc-800",
-                    isUnread(message) && "font-semibold",
+                    "cursor-pointer hover:bg-card transition-colors duration-200",
+                    selectedMessage?.id === message.id && "bg-muted",
+                    isUnread(message) && "font-medium",
                   )}
                   onClick={() => onMessageSelect(message)}
                   onMouseEnter={() => setHoveredRow(message.id)}
@@ -129,8 +128,8 @@ export function MessageTable({
                         className={cn(
                           "h-4 w-4",
                           isFlagged(message)
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "text-zinc-400 hover:text-yellow-400",
+                            ? "fill-foreground text-foreground"
+                            : "text-muted-foreground hover:text-foreground",
                         )}
                       />
                     </Button>
@@ -149,17 +148,17 @@ export function MessageTable({
                       <span
                         className={cn(
                           "truncate max-w-[300px]",
-                          isUnread(message) ? "font-semibold" : "font-normal",
+                          isUnread(message) ? "font-medium" : "font-normal",
                         )}
                       >
                         {message.subject || "(no subject)"}
                       </span>
                       {message.snippet && (
                         <>
-                          <span className="mx-2 text-zinc-400 shrink-0">
+                          <span className="mx-2 text-muted-foreground shrink-0">
                             -
                           </span>
-                          <span className="text-zinc-500 dark:text-zinc-400 text-sm truncate min-w-0 flex-1">
+                          <span className="text-muted-foreground text-sm truncate min-w-0 flex-1">
                             {message.snippet}
                           </span>
                         </>
@@ -170,12 +169,12 @@ export function MessageTable({
                   {/* Attachments */}
                   <TableCell className="p-3">
                     {message.hasAttachments && (
-                      <Paperclip className="h-4 w-4 text-zinc-400" />
+                      <Paperclip className="h-4 w-4 text-muted-foreground" />
                     )}
                   </TableCell>
 
                   {/* Date */}
-                  <TableCell className="text-right text-sm text-zinc-500 dark:text-zinc-400 p-3">
+                  <TableCell className="text-right text-sm text-muted-foreground p-3">
                     {formatMessageDate(message.date)}
                   </TableCell>
 

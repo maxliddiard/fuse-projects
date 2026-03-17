@@ -31,14 +31,14 @@ export function EmailAccountsTable({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (accounts.length === 0) {
     return (
-      <div className="text-center py-8 text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="text-center py-8 text-sm text-muted-foreground">
         No email accounts connected yet.
       </div>
     );

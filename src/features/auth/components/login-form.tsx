@@ -47,11 +47,15 @@ export default function LoginForm() {
     <AuthCard
       title="Log in"
       description="Enter your email and password to log in."
+      backgroundStyle={{
+        background:
+          "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)",
+      }}
     >
       {verified && (
-        <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700">
+        <p className="text-sm text-foreground">
           Email verified successfully. Please log in.
-        </div>
+        </p>
       )}
       <form onSubmit={handleLogin}>
         <div className="flex flex-col gap-6">
@@ -106,7 +110,7 @@ export default function LoginForm() {
                     </Button>
                     {resetMessage && (
                       <p
-                        className={`text-sm ${resetMessage.type === "success" ? "text-green-600" : "text-red-500"}`}
+                        className={`text-sm ${resetMessage.type === "success" ? "text-foreground" : "text-destructive"}`}
                       >
                         {resetMessage.text}
                       </p>
@@ -130,7 +134,7 @@ export default function LoginForm() {
         </div>
       </form>
 
-      {message && <p className="mt-2 text-red-500">{message}</p>}
+      {message && <p className="mt-2 text-destructive">{message}</p>}
 
       <div className="mt-4 text-center text-sm">
         Don&apos;t have an account?{" "}

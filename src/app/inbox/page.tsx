@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import { AppLayout } from "@/components/layout/app-layout";
 
 const messages = [
   {
@@ -37,72 +39,54 @@ const messages = [
 
 export default function Inbox() {
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans dark:bg-black">
-      <nav className="flex items-center gap-6 border-b border-zinc-200 px-8 py-4 dark:border-zinc-800">
-        <span className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-          Fuse Projects
-        </span>
-        <Link
-          href="/"
-          className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
-        >
-          Home
-        </Link>
-        <Link
-          href="/inbox"
-          className="text-sm font-medium text-zinc-900 dark:text-zinc-50"
-        >
-          Inbox
-        </Link>
-      </nav>
-
+    <AppLayout>
       <main className="mx-auto max-w-3xl px-8 py-16">
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-4xl font-light tracking-tight text-foreground">
           Inbox
         </h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-muted-foreground">
           {messages.filter((m) => m.unread).length} unread messages
         </p>
 
-        <div className="mt-8 divide-y divide-zinc-200 rounded-xl border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+        <div className="mt-8 divide-y divide-border border border-border">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className="flex flex-col gap-1 px-6 py-4 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              className="flex flex-col gap-1 px-6 py-4 transition-colors duration-200 hover:bg-card"
             >
               <div className="flex items-center justify-between">
                 <span
                   className={`text-sm ${
                     msg.unread
-                      ? "font-semibold text-zinc-900 dark:text-zinc-50"
-                      : "text-zinc-600 dark:text-zinc-400"
+                      ? "font-medium text-foreground"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {msg.from}
                   {msg.unread && (
-                    <span className="ml-2 inline-block h-2 w-2 rounded-full bg-blue-500" />
+                    <span className="ml-2 inline-block h-2 w-2 bg-foreground" />
                   )}
                 </span>
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                <span className="text-xs text-muted-foreground">
                   {msg.time}
                 </span>
               </div>
               <span
                 className={`text-sm ${
                   msg.unread
-                    ? "font-medium text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-700 dark:text-zinc-300"
+                    ? "font-normal text-foreground"
+                    : "text-muted-foreground"
                 }`}
               >
                 {msg.subject}
               </span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-1">
+              <span className="text-sm text-muted-foreground line-clamp-1">
                 {msg.preview}
               </span>
             </div>
           ))}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

@@ -44,7 +44,7 @@ export function ConversationViewer({
 
   if (!selectedMessage) {
     return (
-      <div className="flex items-center justify-center h-full text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center justify-center h-full text-muted-foreground">
         Select a message to view the conversation
       </div>
     );
@@ -70,16 +70,16 @@ export function ConversationViewer({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-4 p-4 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex items-center gap-4 p-4 border-b border-border">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
 
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-semibold truncate text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-lg font-light truncate text-foreground">
             {selectedMessage.subject || "(no subject)"}
           </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm text-muted-foreground">
             {fullMessage?.conversation?.id ? "Conversation" : "Single message"}
           </p>
         </div>
@@ -104,7 +104,7 @@ export function ConversationViewer({
         <div className="p-6 space-y-6">
           {loadingMessage ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-zinc-50"></div>
+              <div className="animate-spin h-8 w-8 border-b-2 border-foreground"></div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -121,19 +121,19 @@ export function ConversationViewer({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                    <span className="font-medium text-foreground">
                       {selectedMessage.fromName ||
                         selectedMessage.fromAddress ||
                         "Unknown"}
                     </span>
                     {selectedMessage.fromName && (
-                      <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                      <span className="text-sm text-muted-foreground">
                         &lt;{selectedMessage.fromAddress}&gt;
                       </span>
                     )}
                   </div>
 
-                  <div className="text-sm text-zinc-500 dark:text-zinc-400 space-y-1">
+                  <div className="text-sm text-muted-foreground space-y-1">
                     {fullMessage?.addresses &&
                       fullMessage.addresses.filter((a) => a.type === "TO")
                         .length > 0 && (
@@ -204,10 +204,10 @@ export function ConversationViewer({
               {/* Attachments */}
               {fullMessage?.attachments &&
                 fullMessage.attachments.length > 0 && (
-                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
+                  <div className="border border-border p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Paperclip className="h-4 w-4" />
-                      <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                      <span className="font-normal text-foreground">
                         {fullMessage.attachments.length} attachment(s)
                       </span>
                     </div>
@@ -215,15 +215,15 @@ export function ConversationViewer({
                       {fullMessage.attachments.map((attachment) => (
                         <div
                           key={attachment.id}
-                          className="flex items-center gap-2 p-2 border border-zinc-200 dark:border-zinc-800 rounded-md"
+                          className="flex items-center gap-2 p-2 border border-border"
                         >
-                          <Paperclip className="h-4 w-4 text-zinc-400" />
+                          <Paperclip className="h-4 w-4 text-muted-foreground" />
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">
+                            <div className="font-normal text-sm truncate">
                               {attachment.filename || "Unnamed file"}
                             </div>
                             {attachment.size && (
-                              <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                              <div className="text-xs text-muted-foreground">
                                 {Math.round(attachment.size / 1024)} KB
                               </div>
                             )}
@@ -251,12 +251,12 @@ export function ConversationViewer({
                       {fullMessage.body.text}
                     </pre>
                   ) : (
-                    <p className="text-zinc-500 dark:text-zinc-400">
+                    <p className="text-muted-foreground">
                       No content available
                     </p>
                   )
                 ) : (
-                  <p className="text-zinc-500 dark:text-zinc-400">
+                  <p className="text-muted-foreground">
                     Loading message content...
                   </p>
                 )}
@@ -275,7 +275,7 @@ export function ConversationViewer({
           onCancel={handleReplyCancel}
         />
       ) : (
-        <div className="border-t border-zinc-200 dark:border-zinc-800 p-4 flex-shrink-0">
+        <div className="border-t border-border p-4 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Button onClick={handleReply} className="gap-2">
               <Reply className="h-4 w-4" />
