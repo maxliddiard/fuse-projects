@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
+import { useBackgroundPreference } from "@/hooks/use-background-preference";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -15,9 +16,6 @@ const navItems = [
   { label: "Settings", href: "/settings/email", icon: Settings },
 ] as const;
 
-const APP_BG =
-  "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)";
-
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -26,9 +24,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { background } = useBackgroundPreference();
 
   return (
-    <div className="flex min-h-screen bg-background" style={{ background: APP_BG }}>
+    <div className="flex min-h-screen bg-background" style={{ background }}>
       <aside
         className={cn(
           "flex shrink-0 flex-col overflow-hidden border-r border-border bg-card/60 transition-[width] duration-200",
@@ -37,7 +36,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         <div className="flex items-center gap-3 border-b border-border px-4 py-4">
           {!collapsed && (
-            <span className="text-lg font-light text-foreground whitespace-nowrap">
+            <span className="text-lg font-normal text-foreground whitespace-nowrap">
               Fuse Projects
             </span>
           )}

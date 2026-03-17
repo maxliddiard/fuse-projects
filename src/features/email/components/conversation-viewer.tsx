@@ -13,6 +13,7 @@ import { useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,7 +77,7 @@ export function ConversationViewer({
         </Button>
 
         <div className="flex-1 min-w-0">
-          <h2 className="text-lg font-light truncate text-foreground">
+          <h2 className="text-lg font-normal truncate text-foreground">
             {selectedMessage.subject || "(no subject)"}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -104,7 +105,7 @@ export function ConversationViewer({
         <div className="p-6 space-y-6">
           {loadingMessage ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin h-8 w-8 border-b-2 border-foreground"></div>
+              <LoadingSpinner size="lg" />
             </div>
           ) : (
             <div className="space-y-4">

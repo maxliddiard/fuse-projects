@@ -21,9 +21,14 @@ Always consult `design-system.md` at the project root before writing or modifyin
 
 Always prefer these components over writing class strings by hand:
 
-- **`<AppLayout>`** (`@/components/layout/app-layout`) — Wraps every authenticated page. Provides the nav bar and page shell. Never duplicate the nav markup in pages.
-- **`<StatCard label="..." value="..." href?="..." />`** (`@/components/ui/stat-card`) — Use for any label + value display card. Encodes the design system stat pattern.
-- **`<PageHeader title="..." description?="..." size?="default"|"sm" />`** (`@/components/ui/page-header`) — Use for page titles instead of writing `h1` + `p` with raw classes.
+- **`<AppLayout>`** (`@/components/layout/app-layout`) — Wraps every authenticated page. Provides sidebar nav and page shell.
+- **`<PageHeader title="..." description?="..." size?="default"|"sm" />`** (`@/components/ui/page-header`) — Use for page titles. Never write raw `h1` + `p`.
+- **`<SectionHeader as?="h2"|"h3"|"p">`** (`@/components/ui/section-header`) — Uppercase tracking label for section dividers.
+- **`<LoadingSpinner size?="sm"|"default"|"lg" />`** (`@/components/ui/loading-spinner`) — Spinner for loading states. Never write inline `animate-spin` divs.
+- **`<StatCard label="..." value="..." href?="..." />`** (`@/components/ui/stat-card`) — Label + value display card.
+- **`<Badge variant="...">`** (`@/components/ui/badge`) — Use for all inline labels, tags, and badges. Never write raw `<span>` badges.
+- **Project categories**: Import from `@/features/projects/config/categories` (`PROJECT_CATEGORIES`, `ProjectCategory`, `VALID_CATEGORIES`).
+- **Background gradients**: Import from `@/hooks/use-background-preference` (`APP_BACKGROUNDS`). Never inline raw gradient strings.
 
 ## When to Extract a New Component
 
@@ -32,15 +37,23 @@ If the same combination of Tailwind classes appears in 3+ places, extract it int
 ## Quick Reference
 
 ```tsx
-// Stat card (use the component)
-<StatCard label="Active Projects" value="3 in progress" />
-<StatCard label="Mailbox" value="View email" href="/mailbox" />
-
-// Page header (use the component)
+// Page header
 <PageHeader title="Email Settings" description="Manage your accounts" size="sm" />
 
-// Section header (inline — not yet a component)
-<h2 className="text-xs font-normal uppercase tracking-[0.15em] text-muted-foreground">Recent Deals</h2>
+// Section header
+<SectionHeader>Recent Deals</SectionHeader>
+
+// Loading spinner
+<LoadingSpinner />
+<LoadingSpinner size="lg" />
+
+// Category badge
+<Badge variant={PROJECT_CATEGORIES[category].variant}>
+  {PROJECT_CATEGORIES[category].label}
+</Badge>
+
+// Stat card
+<StatCard label="Active Projects" value="3 in progress" />
 
 // Table wrapper
 <div className="w-full overflow-hidden border border-border bg-card">

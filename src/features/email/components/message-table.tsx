@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,7 +66,7 @@ export function MessageTable({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-12">
-        <div className="animate-spin h-8 w-8 border-b-2 border-foreground"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }

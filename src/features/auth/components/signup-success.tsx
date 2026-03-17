@@ -24,7 +24,7 @@ export function SignupSuccess({
             </div>
 
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-light">Check Your Email</h2>
+              <h2 className="text-2xl font-normal">Check Your Email</h2>
               <p className="text-sm text-muted-foreground">
                 You&apos;ll receive an email shortly at{" "}
                 <span className="font-medium text-foreground">{email}</span>{" "}

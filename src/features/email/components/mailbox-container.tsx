@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ConnectEmailPrompt } from "@/components/ui/connect-email-prompt";
 import { Input } from "@/components/ui/input";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import { useAccounts } from "../hooks/use-accounts";
 import { useMailboxes } from "../hooks/use-mailboxes";
@@ -129,7 +130,7 @@ export default function MailboxContainer() {
   if (accountsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin h-8 w-8 border-b-2 border-foreground"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -168,7 +169,7 @@ export default function MailboxContainer() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-4">
-                <h2 className="text-xl font-light text-foreground">
+                <h2 className="text-xl font-normal text-foreground">
                   {mailboxes.find((m) => m.name === selectedMailbox)
                     ?.displayName || selectedMailbox}
                 </h2>

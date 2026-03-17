@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { APP_BACKGROUNDS } from "@/hooks/use-background-preference";
+
 import { useLogin } from "../hooks/use-login";
 import { useLoginForm } from "../hooks/use-login-form";
 import { usePasswordResetRequest } from "../hooks/use-password-reset-request";
@@ -47,10 +49,7 @@ export default function LoginForm() {
     <AuthCard
       title="Log in"
       description="Enter your email and password to log in."
-      backgroundStyle={{
-        background:
-          "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)",
-      }}
+      backgroundStyle={{ background: APP_BACKGROUNDS.warm }}
     >
       {verified && (
         <p className="text-sm text-foreground">

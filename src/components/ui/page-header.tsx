@@ -17,7 +17,7 @@ export function PageHeader({
     <div className={className}>
       <h1
         className={cn(
-          "font-light tracking-tight text-foreground",
+          "font-normal tracking-tight text-foreground",
           size === "default" ? "text-4xl" : "text-2xl",
         )}
       >

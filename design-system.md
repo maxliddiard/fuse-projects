@@ -1,66 +1,56 @@
 # Design System
 
-This project uses a warm, editorial aesthetic inspired by cedarfieldgroup.com. All UI work must follow these conventions.
+Warm, editorial aesthetic. All UI work must follow these conventions.
 
-## Color Palette
+## Tokens
 
-All colors are HSL tokens defined in `src/app/globals.css`. Never use raw hex/rgb values.
+Colors are HSL tokens in `src/app/globals.css`. Never use raw hex/rgb or Tailwind color scales.
 
-- **Background**: Warm parchment beige (`--background: 33 43% 94%`), not white
-- **Cards/Popovers**: Slightly lighter than background (`30 30% 97%`) for subtle depth
-- **Foreground/Primary**: Near-black (`0 0% 10%`), not pure black
-- **Muted foreground**: `0 0% 35%` — dark enough for readability on the warm background
-- **Borders**: Warm gray (`40 10% 88%`)
-- **Accent/Secondary/Muted**: Neutral warm grays — no purple, no indigo, no saturated colors
+- **Background**: Warm parchment beige (`--background`), not white
+- **Cards**: Slightly lighter (`--card`) for subtle depth
+- **Foreground**: Near-black (`--foreground`), not pure black
+- **Muted**: `--muted-foreground` for secondary text; `--border` for warm gray borders
+- **No purple, indigo, or saturated accent colors**
 
-## Typography
+## Rules
 
-- Base font weight: **200** (extra-light). Use `font-light` (300) or `font-normal` (400) for emphasis, `font-medium` (500) sparingly.
-- Never use `font-bold` or `font-semibold` for headings. Use `font-light` + size instead.
-- Base letter spacing: `-0.01em`
-- Section labels: `text-xs uppercase tracking-[0.15em] text-muted-foreground`
-- Font stack: `system-ui, -apple-system, sans-serif` (no custom web fonts for body)
-- Monospace: `JetBrains Mono`
+- **Weight**: Base 200. Use `font-light`/`font-normal` for emphasis, `font-medium` sparingly. Never `font-bold`/`font-semibold` on headings.
+- **Radius**: `--radius: 0px`. No `rounded-*` on cards, tables, badges, containers.
+- **Shadows**: None. No `shadow-sm`, `shadow-md`, etc.
+- **Gradients**: No `bg-gradient-to-*`. Page backgrounds use `APP_BACKGROUNDS` from `@/hooks/use-background-preference` — never inline gradient strings.
+- **Hover**: `hover:border-foreground/20` or text color shift with `transition-colors duration-200`.
 
-## Geometry
+## Components
 
-- Border radius: **0px** everywhere (`--radius: 0px`). Sharp corners only.
-- Never add `rounded-*` classes to cards, tables, badges, or containers.
+Use these instead of raw classes:
 
-## Effects and Interactions
+| Component | Import | Purpose |
+|-----------|--------|---------|
+| `<AppLayout>` | `@/components/layout/app-layout` | Wraps every authenticated page |
+| `<PageHeader>` | `@/components/ui/page-header` | Page titles — never raw `h1` + `p` |
+| `<SectionHeader>` | `@/components/ui/section-header` | Uppercase tracking labels |
+| `<LoadingSpinner>` | `@/components/ui/loading-spinner` | Loading states — never inline `animate-spin` |
+| `<StatCard>` | `@/components/ui/stat-card` | Label + value cards |
+| `<Badge>` | `@/components/ui/badge` | Inline labels/tags — never raw `<span>` badges |
 
-- **No gradients** — no `bg-gradient-to-*` on any element
-- **No shadows** on cards or containers (no `shadow-sm`, `shadow-md`, etc.)
-- Hover states: subtle border color change (`hover:border-foreground/20`) or text color shift only
-- Transitions: `transition-colors duration-200` — keep it understated
-
-## Component Patterns
+**Project categories** — centralized in `@/features/projects/config/categories`:
 
 ```tsx
-// Stat card label
-<p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">Label</p>
+import { PROJECT_CATEGORIES, type ProjectCategory } from "@/features/projects/config/categories";
+// SALES → { label: "Sales", variant: "default" }
+// MANAGEMENT → { label: "Management", variant: "secondary" }
+// OTHER → { label: "Other", variant: "outline" }
+```
 
-// Stat card value
-<p className="text-2xl font-light tracking-tight text-foreground">$49M</p>
+## Patterns
 
-// Section header
-<h2 className="text-xs font-normal uppercase tracking-[0.15em] text-muted-foreground">Recent Deals</h2>
-
+```tsx
 // Links
 <a className="text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground hover:decoration-foreground">
 
-// Table wrapper — no rounding, no shadow
+// Table wrapper
 <div className="w-full overflow-hidden border border-border bg-card">
 
 // Icon container
 <div className="bg-muted p-2.5 text-muted-foreground">
 ```
-
-## What to Avoid
-
-- Purple, indigo, or any saturated accent colors
-- `font-bold`, `font-semibold` on headings
-- `rounded-xl`, `rounded-lg`, or any rounding classes
-- `shadow-sm`, `shadow-md`, or any box shadows on cards
-- Gradient overlays or colored backgrounds on sections
-- `text-accent` for highlighting values (use `text-foreground font-medium` instead)

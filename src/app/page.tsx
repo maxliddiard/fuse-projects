@@ -2,18 +2,19 @@
 
 import { AppLayout } from "@/components/layout/app-layout";
 import { ConnectEmailPrompt } from "@/components/ui/connect-email-prompt";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { PageHeader } from "@/components/ui/page-header";
 import { useEmailAccounts } from "@/features/email/hooks/use-email-accounts";
 import { ProjectsContainer } from "@/features/projects/components/projects-container";
 
 function Dashboard() {
   return (
     <main className="mx-auto max-w-4xl px-8 py-12">
-      <h1 className="text-3xl font-light tracking-tight text-foreground">
-        Projects
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Discovered accounts from your email, categorized by relationship type.
-      </p>
+      <PageHeader
+        title="Projects"
+        description="Discovered accounts from your email, categorized by relationship type."
+        size="sm"
+      />
 
       <div className="mt-8">
         <ProjectsContainer />
@@ -30,7 +31,7 @@ export default function Home() {
     <AppLayout>
       {loading ? (
         <div className="flex items-center justify-center py-32">
-          <div className="h-6 w-6 animate-spin border-b-2 border-foreground" />
+          <LoadingSpinner />
         </div>
       ) : hasEmail ? (
         <Dashboard />

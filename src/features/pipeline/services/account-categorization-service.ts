@@ -1,6 +1,11 @@
 import { invokeClaudeOnBedrock } from "@/lib/bedrock/client";
 import prisma from "@/lib/prisma/client";
 
+import {
+  VALID_CATEGORIES,
+  type ProjectCategory,
+} from "@/features/projects/config/categories";
+
 const BATCH_SIZE = 2;
 
 const CATEGORIZATION_SYSTEM = `You are an email analyst. Given a domain and recent email subjects/snippets, classify the sender into one of three categories:
@@ -14,7 +19,7 @@ IMPORTANT: Mass marketing emails, newsletters, and subscription content are ALWA
 Respond with ONLY valid JSON: {"category": "SALES"|"MANAGEMENT"|"OTHER", "reason": "brief explanation"}`;
 
 interface CategorizationResult {
-  category: "SALES" | "MANAGEMENT" | "OTHER";
+  category: ProjectCategory;
   reason: string;
 }
 
@@ -130,8 +135,8 @@ function parseCategorizationResponse(response: string): CategorizationResult {
 
   try {
     const parsed = JSON.parse(jsonMatch[0]);
-    const category = ["SALES", "MANAGEMENT", "OTHER"].includes(parsed.category)
-      ? parsed.category
+    const category = VALID_CATEGORIES.includes(parsed.category)
+      ? (parsed.category as ProjectCategory)
       : "OTHER";
     return {
       category,
