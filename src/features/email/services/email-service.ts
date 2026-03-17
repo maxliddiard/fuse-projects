@@ -31,18 +31,21 @@ export class EmailService {
       vendorAccountId: userInfo.id,
     });
 
-    // Trigger initial sync so mailboxes and messages are ready
-    try {
-      const syncService = await EmailSyncService.fromAccountId(account.id);
-      await syncService.performInitialSync();
-
-      // Auto-trigger pipeline after first sync completes
-      PipelineOrchestrator.runForAccount(account.id).catch((err) => {
-        console.error("Auto-pipeline after OAuth sync failed (non-blocking):", err);
+    // Fire-and-forget: sync emails, start pipeline after first page of results
+    // This runs in the background so the OAuth redirect isn't blocked
+    EmailSyncService.fromAccountId(account.id)
+      .then(async (syncService) => {
+        await syncService.performInitialSync(() => {
+          // Start pipeline after first page — don't wait for full sync
+          console.log("[EmailSync] First page done, starting pipeline early");
+          PipelineOrchestrator.runForAccount(account.id).catch((err) => {
+            console.error("Early pipeline trigger failed:", err);
+          });
+        });
+      })
+      .catch((err) => {
+        console.error("Background sync failed:", err);
       });
-    } catch (err) {
-      console.error("Initial sync failed (non-blocking):", err);
-    }
 
     return account;
   }

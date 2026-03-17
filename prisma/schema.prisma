@@ -29,6 +29,9 @@ model EmailAccount {
   emailAddress    String
   displayName     String?
   status          String   @default("ACTIVE")
+  syncStatus      String   @default("IDLE") // IDLE | SYNCING | FAILED
+  syncedMessages  Int      @default(0)
+  totalMessages   Int      @default(0)
   accessToken     String
   refreshToken    String?
   tokenExpiresAt  DateTime?

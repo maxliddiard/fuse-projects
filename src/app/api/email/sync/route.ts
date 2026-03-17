@@ -20,8 +20,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await EmailService.syncAccount(accountId, auth.user.id);
-    return NextResponse.json({ success: true, ...result });
+    // Fire-and-forget: start sync in background so the response returns immediately
+    EmailService.syncAccount(accountId, auth.user.id).catch((error) => {
+      console.error("Background sync error:", error);
+    });
+    return NextResponse.json({ success: true, started: true });
   } catch (error) {
     console.error("Sync error:", error);
     return NextResponse.json(
