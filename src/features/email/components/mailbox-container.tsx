@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { ConnectEmailPrompt } from "@/components/ui/connect-email-prompt";
 import { Input } from "@/components/ui/input";
 
 import { useAccounts } from "../hooks/use-accounts";
@@ -121,6 +122,10 @@ export default function MailboxContainer() {
     );
   }
 
+  if (accounts.length === 0) {
+    return <ConnectEmailPrompt />;
+  }
+
   return (
     <div className="flex h-[calc(100vh-65px)]">
       {/* Sidebar */}
@@ -210,9 +215,7 @@ export default function MailboxContainer() {
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">
-            {accounts.length === 0
-              ? "Connect an email account to get started"
-              : "Select an account from the sidebar"}
+            Select an account from the sidebar
           </div>
         )}
 

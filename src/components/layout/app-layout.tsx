@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, LogOut, Mail, PanelLeft, PanelLeftClose, Settings } from "lucide-react";
+import { Home, LogOut, Mail, PanelLeft, PanelLeftClose, Settings, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -9,8 +9,9 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Projects", href: "/", icon: Home },
-  { label: "Mailbox", href: "/mailbox", icon: Mail },
+  { label: "AI-detected projects", href: "/", icon: Home },
+  { label: "Actions", href: "/actions", icon: Wand2 },
+  { label: "Emails", href: "/mailbox", icon: Mail },
   { label: "Settings", href: "/settings/email", icon: Settings },
 ] as const;
 

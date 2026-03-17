@@ -3,26 +3,8 @@
 import { AppLayout } from "@/components/layout/app-layout";
 import { ConnectEmailPrompt } from "@/components/ui/connect-email-prompt";
 import { useEmailAccounts } from "@/features/email/hooks/use-email-accounts";
-import { ProjectsContainer } from "@/features/projects/components/projects-container";
 
-function Dashboard() {
-  return (
-    <main className="mx-auto max-w-4xl px-8 py-12">
-      <h1 className="text-3xl font-light tracking-tight text-foreground">
-        Projects
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Discovered accounts from your email, categorized by relationship type.
-      </p>
-
-      <div className="mt-8">
-        <ProjectsContainer />
-      </div>
-    </main>
-  );
-}
-
-export default function Home() {
+export default function ActionsPage() {
   const { accounts, loading } = useEmailAccounts();
   const hasEmail = accounts.length > 0;
 
@@ -33,7 +15,14 @@ export default function Home() {
           <div className="h-6 w-6 animate-spin border-b-2 border-foreground" />
         </div>
       ) : hasEmail ? (
-        <Dashboard />
+        <main className="mx-auto max-w-3xl px-8 py-16">
+          <h1 className="text-4xl font-light tracking-tight text-foreground">
+            Actions
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            AI-powered actions will appear here.
+          </p>
+        </main>
       ) : (
         <ConnectEmailPrompt />
       )}
