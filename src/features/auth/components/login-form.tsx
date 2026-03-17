@@ -47,11 +47,15 @@ export default function LoginForm() {
     <AuthCard
       title="Log in"
       description="Enter your email and password to log in."
+      backgroundStyle={{
+        background:
+          "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)",
+      }}
     >
       {verified && (
-        <div className="border border-border bg-card p-3 text-sm text-foreground">
+        <p className="text-sm text-foreground">
           Email verified successfully. Please log in.
-        </div>
+        </p>
       )}
       <form onSubmit={handleLogin}>
         <div className="flex flex-col gap-6">
