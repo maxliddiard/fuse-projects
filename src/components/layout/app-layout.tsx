@@ -12,6 +12,13 @@ const navItems = [
   { label: "Settings", href: "/settings/email" },
 ] as const;
 
+// Background options — uncomment to switch
+// Default:        (no style override, uses bg-background from globals.css)
+// Peach→Lavender: "linear-gradient(135deg, hsl(30 70% 93%) 0%, hsl(40 50% 91%) 35%, hsl(300 30% 92%) 70%, hsl(270 40% 91%) 100%)"
+// Warm Cream:
+const APP_BG =
+  "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)";
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -21,7 +28,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div
+      className="min-h-screen bg-background font-sans"
+      style={{ background: APP_BG }}
+    >
       <nav className="flex items-center gap-6 border-b border-border px-8 py-4">
         <span className="text-lg font-light text-foreground">
           Fuse Projects
