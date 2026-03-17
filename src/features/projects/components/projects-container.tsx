@@ -2,7 +2,9 @@
 
 import { useCallback, useState } from "react";
 
+import { SyncStatusBanner } from "@/features/email/components/sync-status-banner";
 import { useAccounts } from "@/features/email/hooks/use-accounts";
+import { useSyncStatus } from "@/features/email/hooks/use-sync-status";
 
 import { usePipelineStatus } from "../hooks/use-pipeline-status";
 import { useProjects } from "../hooks/use-projects";
@@ -26,6 +28,7 @@ export function ProjectsContainer() {
   }, [refetchProjects]);
 
   const { run } = usePipelineStatus(accountId, handlePipelineComplete);
+  const { status: syncStatus } = useSyncStatus(accountId);
 
   const handleRunAnalysis = async () => {
     if (!accountId) return;
@@ -51,6 +54,7 @@ export function ProjectsContainer() {
   }
 
   const isRunning = run?.status === "RUNNING";
+  const isSyncing = syncStatus?.syncStatus === "SYNCING";
 
   return (
     <div className="space-y-6">
@@ -76,14 +80,15 @@ export function ProjectsContainer() {
         )}
         <button
           onClick={handleRunAnalysis}
-          disabled={triggering || isRunning}
+          disabled={triggering || isRunning || isSyncing}
           className="ml-auto rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
-          {isRunning ? "Running..." : "Run Analysis"}
+          {isSyncing ? "Syncing..." : isRunning ? "Running..." : "Run Analysis"}
         </button>
       </div>
 
-      {/* Pipeline status */}
+      {/* Sync + Pipeline status */}
+      <SyncStatusBanner status={syncStatus} />
       <PipelineStatusBanner run={run} />
 
       {/* Project cards */}

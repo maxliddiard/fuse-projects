@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,13 @@ import { useAccounts } from "../hooks/use-accounts";
 import { useMailboxes } from "../hooks/use-mailboxes";
 import { useMessageDetails } from "../hooks/use-message-details";
 import { useMessages } from "../hooks/use-messages";
+import { useSyncStatus } from "../hooks/use-sync-status";
 import type { EmailMessage, ReplyToData } from "../types";
 import { AccountMailboxSidebar } from "./account-mailbox-sidebar";
 import { ComposeDialog } from "./compose-dialog";
 import { ConversationViewer } from "./conversation-viewer";
 import { MessageTable } from "./message-table";
+import { SyncStatusBanner } from "./sync-status-banner";
 
 interface EmailAccount {
   id: string;
@@ -56,6 +58,16 @@ export default function MailboxContainer() {
     loading: loadingMessage,
     fetchFullMessage,
   } = useMessageDetails();
+
+  const handleSyncComplete = useCallback(() => {
+    refetchMailboxes();
+    refetchMessages();
+  }, [refetchMailboxes, refetchMessages]);
+
+  const { status: syncStatus } = useSyncStatus(
+    selectedAccount?.id || null,
+    handleSyncComplete,
+  );
 
   // Auto-select first account when accounts load
   useEffect(() => {
@@ -146,6 +158,13 @@ export default function MailboxContainer() {
       <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         {selectedAccount ? (
           <>
+            {/* Sync status */}
+            {syncStatus?.syncStatus !== "IDLE" && (
+              <div className="px-4 pt-3">
+                <SyncStatusBanner status={syncStatus} />
+              </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-4">

@@ -66,25 +66,82 @@ export class EmailSyncService {
     return mapping[labelName.toUpperCase()] || "CUSTOM";
   }
 
-  async syncMessages(query?: string, maxResults = 100) {
-    const response = await this.client.listMessages(query, maxResults);
+  async syncMessages(
+    query?: string,
+    maxResults = 500,
+    onFirstPage?: () => void,
+  ) {
+    let totalSynced = 0;
+    let totalFetched = 0;
+    let pageToken: string | undefined;
+    let page = 0;
 
-    if (!response.messages) {
-      return { synced: 0, total: 0 };
-    }
+    console.log("[EmailSync] Starting email sync...");
 
-    const messageIds = response.messages.map((m) => m.id!).filter(Boolean);
-    const messages = await this.client.getMessageBatch(messageIds);
+    // First, count total messages available so the frontend can show progress
+    const initialResponse = await this.client.listMessages(query, 1);
+    const estimatedTotal = initialResponse.resultSizeEstimate ?? 0;
 
-    let synced = 0;
-    for (const msgResponse of messages) {
-      const message = msgResponse.data;
-      if (await this.saveMessage(message)) {
-        synced++;
+    await prisma.emailAccount.update({
+      where: { id: this.accountId },
+      data: {
+        syncStatus: "SYNCING",
+        syncedMessages: 0,
+        totalMessages: estimatedTotal,
+      },
+    });
+
+    do {
+      page++;
+      const response = await this.client.listMessages(
+        query,
+        maxResults,
+        pageToken,
+      );
+
+      if (!response.messages) break;
+
+      const messageIds = response.messages.map((m) => m.id!).filter(Boolean);
+      console.log(
+        `[EmailSync] Page ${page}: fetched ${messageIds.length} message IDs`,
+      );
+
+      // Fetch full message details in chunks of 25 to avoid Gmail rate limits
+      const DETAIL_BATCH_SIZE = 25;
+      for (let i = 0; i < messageIds.length; i += DETAIL_BATCH_SIZE) {
+        const chunk = messageIds.slice(i, i + DETAIL_BATCH_SIZE);
+        const messages = await this.client.getMessageBatch(chunk);
+
+        for (const msgResponse of messages) {
+          if (await this.saveMessage(msgResponse.data)) {
+            totalSynced++;
+          }
+        }
       }
-    }
 
-    return { synced, total: messages.length };
+      totalFetched += messageIds.length;
+      pageToken = response.nextPageToken ?? undefined;
+
+      // Update progress in DB so frontend can poll
+      await prisma.emailAccount.update({
+        where: { id: this.accountId },
+        data: { syncedMessages: totalSynced },
+      });
+
+      console.log(
+        `[EmailSync] Progress: ${totalSynced} synced / ${totalFetched} fetched (est. ${estimatedTotal} total)`,
+      );
+
+      // After first page, fire callback so pipeline can start early
+      if (page === 1) {
+        onFirstPage?.();
+      }
+    } while (pageToken);
+
+    console.log(
+      `[EmailSync] Complete: ${totalSynced} synced, ${totalFetched} total fetched`,
+    );
+    return { synced: totalSynced, total: totalFetched };
   }
 
   private async saveMessage(gmailMessage: gmail_v1.Schema$Message) {
@@ -305,10 +362,24 @@ export class EmailSyncService {
     }
   }
 
-  async performInitialSync() {
-    await this.syncLabels();
-    const result = await this.syncMessages(undefined, 100);
-    await EmailAccountRepository.updateLastSyncedAt(this.accountId);
-    return result;
+  async performInitialSync(onFirstPage?: () => void) {
+    try {
+      await this.syncLabels();
+      const result = await this.syncMessages(undefined, 500, onFirstPage);
+      await prisma.emailAccount.update({
+        where: { id: this.accountId },
+        data: {
+          syncStatus: "IDLE",
+          lastSyncedAt: new Date(),
+        },
+      });
+      return result;
+    } catch (error) {
+      await prisma.emailAccount.update({
+        where: { id: this.accountId },
+        data: { syncStatus: "FAILED" },
+      });
+      throw error;
+    }
   }
 }
