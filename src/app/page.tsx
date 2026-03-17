@@ -19,10 +19,16 @@ export default function Home() {
           Home
         </Link>
         <Link
-          href="/inbox"
+          href="/mailbox"
           className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
         >
-          Inbox
+          Mailbox
+        </Link>
+        <Link
+          href="/settings/email"
+          className="text-sm text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
+        >
+          Settings
         </Link>
         {session && (
           <button
@@ -69,14 +75,14 @@ export default function Home() {
             </p>
           </div>
           <Link
-            href="/inbox"
+            href="/mailbox"
             className="rounded-xl border border-zinc-200 p-6 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
           >
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-              Inbox
+              Mailbox
             </h2>
             <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              4 unread messages
+              View your connected email
             </p>
           </Link>
         </div>

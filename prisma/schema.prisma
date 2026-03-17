@@ -8,12 +8,140 @@ generator client {
 }
 
 model User {
-  id              String    @id @default(uuid())
-  email           String?   @unique
+  id              String         @id @default(uuid())
+  email           String?        @unique
   password        String?
   emailVerifiedAt DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  emailAccounts   EmailAccount[]
+}
+
+// AccountStatus: ACTIVE | ERROR | DISCONNECTED
+// MailboxRole: INBOX | SENT | DRAFTS | TRASH | SPAM | STARRED | IMPORTANT | ALL_MAIL | CUSTOM
+// EmailAddressType: FROM | TO | CC | BCC | REPLY_TO
+// EmailMessageStatus: NORMAL | DRAFT | OUTGOING | FAILED
+
+model EmailAccount {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailAddress    String
+  displayName     String?
+  status          String   @default("ACTIVE")
+  accessToken     String
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+  vendorAccountId String?
+  lastSyncedAt    DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  mailboxes     Mailbox[]
+  conversations EmailConversation[]
+  messages      EmailMessage[]
+
+  @@unique([userId, emailAddress])
+}
+
+model Mailbox {
+  id          String       @id @default(uuid())
+  accountId   String
+  account     EmailAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  role        String       @default("CUSTOM")
+  name        String
+  path        String
+  externalId  String?
+  totalCount  Int          @default(0)
+  unreadCount Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  messages MessageMailbox[]
+
+  @@unique([accountId, path])
+}
+
+model EmailConversation {
+  id             String       @id @default(uuid())
+  accountId      String
+  account        EmailAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  externalThread String
+  subject        String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  messages EmailMessage[]
+
+  @@unique([accountId, externalThread])
+}
+
+model EmailMessage {
+  id               String             @id @default(uuid())
+  accountId        String
+  account          EmailAccount       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  conversationId   String?
+  conversation     EmailConversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  externalId       String?
+  rfc822MessageId  String?
+  subject          String?
+  snippet          String?
+  fromName         String?
+  fromAddress      String?
+  replyTo          String?
+  date             DateTime?
+  hasAttachments   Boolean  @default(false)
+  status           String   @default("NORMAL")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  body        MessageBody?
+  mailboxes   MessageMailbox[]
+  attachments EmailAttachment[]
+  addresses   MessageAddress[]
+}
+
+model MessageBody {
+  id        String       @id @default(uuid())
+  messageId String       @unique
+  message   EmailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  text      String?
+  html      String?
+}
+
+model MessageMailbox {
+  id        String       @id @default(uuid())
+  messageId String
+  message   EmailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  mailboxId String
+  mailbox   Mailbox      @relation(fields: [mailboxId], references: [id], onDelete: Cascade)
+  isSeen    Boolean      @default(false)
+  isFlagged Boolean      @default(false)
+  isDraft   Boolean      @default(false)
+
+  @@unique([messageId, mailboxId])
+}
+
+model EmailAttachment {
+  id             String       @id @default(uuid())
+  messageId      String
+  message        EmailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  filename       String?
+  mimeType       String?
+  size           Int          @default(0)
+  contentId      String?
+  isInline       Boolean      @default(false)
+  providerPartId String?
+  createdAt      DateTime     @default(now())
+}
+
+model MessageAddress {
+  id        String           @id @default(uuid())
+  messageId String
+  message   EmailMessage     @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  type      String
+  address   String
+  name      String?
 }
 
 model VerificationToken {

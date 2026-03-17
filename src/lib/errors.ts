@@ -120,6 +120,28 @@ export class TokenExpiredError extends OperationalError {
   }
 }
 
+export class OAuthConfigError extends OperationalError {
+  constructor(
+    message: string = "OAuth configuration missing",
+  ) {
+    super(message, 500, "OAUTH_CONFIG_MISSING");
+  }
+}
+
+export class OAuthExchangeError extends OperationalError {
+  constructor(
+    message: string = "OAuth code exchange failed",
+  ) {
+    super(message, 500, "OAUTH_EXCHANGE_FAILED");
+  }
+}
+
+export class EmailAccountNotFoundError extends ResourceNotFoundError {
+  constructor(accountId?: string) {
+    super("EmailAccount", accountId);
+  }
+}
+
 export class RateLimitError extends OperationalError {
   public readonly retryAfter?: number;
 
