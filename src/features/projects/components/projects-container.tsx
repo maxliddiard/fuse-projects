@@ -79,7 +79,11 @@ export function ProjectsContainer() {
         )}
         <Button
           onClick={handleRunAnalysis}
+<<<<<<< HEAD
           disabled={triggering || isRunning || isSyncing}
+=======
+          disabled={triggering || isRunning}
+>>>>>>> 6baf5ef (More UXUI tweaks)
           className="ml-auto bg-info text-info-foreground hover:bg-info/90"
         >
           {isSyncing ? "Syncing..." : isRunning ? "Running..." : "Run Analysis"}

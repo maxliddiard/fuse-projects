@@ -10,12 +10,13 @@ Colors are HSL tokens in `src/app/globals.css`. Never use raw hex/rgb or Tailwin
 - **Cards**: Slightly lighter (`--card`) for subtle depth
 - **Foreground**: Near-black (`--foreground`), not pure black
 - **Muted**: `--muted-foreground` for secondary text; `--border` for warm gray borders
-- **No purple, indigo, or saturated accent colors**
+- **Info/AI accent**: Purple (`--info`) used for AI-flagged elements (Sales badges, analysis banners). Only use via `--info`/`--info-foreground` tokens or the `info` Badge variant.
+- No other saturated accent colors (no indigo, blue, etc.)
 
 ## Rules
 
-- **Weight**: Base 200. Use `font-light`/`font-normal` for emphasis, `font-medium` sparingly. Never `font-bold`/`font-semibold` on headings.
-- **Radius**: `--radius: 0px`. No `rounded-*` on cards, tables, badges, containers.
+- **Weight**: Base 300. Use `font-normal` (400) for headings/emphasis, `font-medium` (500) sparingly. Never `font-bold`/`font-semibold` on headings.
+- **Radius**: `--radius: 6px`. Subtle rounding on cards, inputs, badges. Do not use large values like `rounded-xl` or `rounded-2xl`.
 - **Shadows**: None. No `shadow-sm`, `shadow-md`, etc.
 - **Gradients**: No `bg-gradient-to-*`. Page backgrounds use `APP_BACKGROUNDS` from `@/hooks/use-background-preference` — never inline gradient strings.
 - **Hover**: `hover:border-foreground/20` or text color shift with `transition-colors duration-200`.
@@ -37,8 +38,8 @@ Use these instead of raw classes:
 
 ```tsx
 import { PROJECT_CATEGORIES, type ProjectCategory } from "@/features/projects/config/categories";
-// SALES → { label: "Sales", variant: "default" }
-// MANAGEMENT → { label: "Management", variant: "secondary" }
+// SALES → { label: "Sales", variant: "info" }       (purple — AI-flagged)
+// MANAGEMENT → { label: "Management", variant: "outline" }
 // OTHER → { label: "Other", variant: "outline" }
 ```
 

@@ -10,12 +10,12 @@ Always consult `design-system.md` at the project root before writing or modifyin
 ## Key Rules
 
 - **Colors**: Use semantic CSS variables only (`bg-background`, `text-foreground`, `border-border`, `text-muted-foreground`, `bg-card`, `bg-muted`). Never use raw hex, rgb, oklch, or Tailwind color scales like `zinc-*`, `blue-*`, `purple-*`.
-- **Radius**: `--radius` is `0px`. Never add `rounded-*` classes to cards, tables, badges, or containers.
+- **Radius**: `--radius` is `6px`. Subtle rounding on cards, inputs, badges. Do not use large values like `rounded-xl` or `rounded-2xl`.
 - **Shadows**: No `shadow-sm`, `shadow-md`, or any box shadows on cards or containers.
 - **Gradients**: No `bg-gradient-to-*` on any element.
-- **Typography**: Base weight is 200 (extra-light). Use `font-light` (300) or `font-normal` (400) for emphasis. Never use `font-bold` or `font-semibold` on headings — use `font-light` + larger size instead. Use `font-medium` (500) sparingly.
+- **Typography**: Base weight is 300 (light). Use `font-normal` (400) for headings/emphasis. Never use `font-bold` or `font-semibold` on headings. Use `font-medium` (500) sparingly.
 - **Hover states**: Subtle only — `hover:border-foreground/20` or text color shift with `transition-colors duration-200`.
-- **Accents**: No purple, indigo, or saturated colors. Use warm neutral grays from the token palette.
+- **Accents**: Purple (`--info`) is reserved for AI-flagged elements (Sales badges, analysis banners). Use via `bg-info`/`text-info-foreground` or the `info` Badge variant. No other saturated colors.
 
 ## Shared Components — Use These Instead of Raw Classes
 
