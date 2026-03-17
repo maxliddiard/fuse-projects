@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     const result = await AuthService.resendVerificationEmail(email);
 
     if (result.token) {
-      const verifyUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${result.token}`;
+      const baseUrl = new URL(req.url).origin;
+      const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${result.token}`;
       console.log(`\n[DEV] Verification URL for ${email}:\n${verifyUrl}\n`);
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,8 @@ import { usePasswordResetRequest } from "../hooks/use-password-reset-request";
 import { AuthCard } from "./auth-card";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const verified = searchParams.get("verified") === "true";
   const { navigateToSignup } = useLoginForm();
   const {
     email,
@@ -45,6 +48,11 @@ export default function LoginForm() {
       title="Log in"
       description="Enter your email and password to log in."
     >
+      {verified && (
+        <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700">
+          Email verified successfully. Please log in.
+        </div>
+      )}
       <form onSubmit={handleLogin}>
         <div className="flex flex-col gap-6">
           <div className="grid gap-2">

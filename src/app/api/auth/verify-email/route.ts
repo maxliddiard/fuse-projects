@@ -18,12 +18,13 @@ export async function GET(req: Request) {
     );
   }
 
+  const baseUrl = new URL(req.url).origin;
+
   try {
     await AuthService.verifyEmailByToken(token);
 
-    return NextResponse.json(
-      { message: "Email verified successfully" },
-      { status: 200 },
+    return NextResponse.redirect(
+      `${baseUrl}/auth/login?verified=true`,
     );
   } catch (error) {
     console.error("Email verification error:", {
@@ -31,8 +32,9 @@ export async function GET(req: Request) {
       message: error instanceof Error ? error.message : "Unknown error",
     });
 
-    return NextResponse.json(formatErrorResponse(error), {
-      status: getErrorStatusCode(error),
-    });
+    const code = isOperationalError(error) ? error.code : "UNKNOWN";
+    return NextResponse.redirect(
+      `${baseUrl}/auth/login?error=${code}`,
+    );
   }
 }

@@ -15,7 +15,8 @@ export async function POST(req: Request) {
     const result = await AuthService.requestPasswordReset(email);
 
     if (result.token) {
-      const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${result.token}`;
+      const baseUrl = new URL(req.url).origin;
+      const resetUrl = `${baseUrl}/auth/reset-password?token=${result.token}`;
       console.log(`\n[DEV] Password reset URL for ${email}:\n${resetUrl}\n`);
     }
 
