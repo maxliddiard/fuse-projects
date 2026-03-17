@@ -12,7 +12,7 @@ function ConnectEmailPrompt() {
   const { connect, connecting } = useConnectGmail();
 
   return (
-    <main className="mx-auto max-w-lg px-8 py-32 text-center">
+    <main className="mx-auto flex min-h-full max-w-lg flex-col items-center justify-center px-8 text-center">
       <div className="flex justify-center">
         <div className="bg-muted p-4 text-muted-foreground">
           <Mail className="h-8 w-8" />

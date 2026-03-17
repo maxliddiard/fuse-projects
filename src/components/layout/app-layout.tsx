@@ -1,21 +1,19 @@
 "use client";
 
+import { Home, LogOut, Mail, PanelLeft, PanelLeftClose, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { label: "Home", href: "/" },
-  { label: "Mailbox", href: "/mailbox" },
-  { label: "Settings", href: "/settings/email" },
+  { label: "Projects", href: "/", icon: Home },
+  { label: "Mailbox", href: "/mailbox", icon: Mail },
+  { label: "Settings", href: "/settings/email", icon: Settings },
 ] as const;
 
-// Background options — uncomment to switch
-// Default:        (no style override, uses bg-background from globals.css)
-// Peach→Lavender: "linear-gradient(135deg, hsl(30 70% 93%) 0%, hsl(40 50% 91%) 35%, hsl(300 30% 92%) 70%, hsl(270 40% 91%) 100%)"
-// Warm Cream:
 const APP_BG =
   "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)";
 
@@ -26,47 +24,79 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div
-      className="min-h-screen bg-background font-sans"
-      style={{ background: APP_BG }}
-    >
-      <nav className="flex items-center gap-6 border-b border-border px-8 py-4">
-        <span className="text-lg font-light text-foreground">
-          Fuse Projects
-        </span>
-        {navItems.map((item) => {
-          const isActive = item.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(item.href);
+    <div className="flex min-h-screen bg-background" style={{ background: APP_BG }}>
+      <aside
+        className={cn(
+          "flex shrink-0 flex-col overflow-hidden border-r border-border bg-card/60 transition-[width] duration-200",
+          collapsed ? "w-14" : "w-52",
+        )}
+      >
+        <div className="flex items-center gap-3 border-b border-border px-4 py-4">
+          {!collapsed && (
+            <span className="text-lg font-light text-foreground whitespace-nowrap">
+              Fuse Projects
+            </span>
+          )}
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className={cn(
+              "text-muted-foreground transition-colors duration-200 hover:text-foreground",
+              collapsed && "mx-auto",
+            )}
+          >
+            {collapsed ? (
+              <PanelLeft className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="ml-auto h-4 w-4" />
+            )}
+          </button>
+        </div>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
+        <nav className="flex flex-1 flex-col gap-1 px-2 py-3">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-2 py-2 text-sm transition-colors duration-200",
+                  isActive
+                    ? "text-foreground font-normal"
+                    : "text-muted-foreground hover:text-foreground",
+                  collapsed && "justify-center",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {session && (
+          <div className="border-t border-border px-2 py-3">
+            <button
+              onClick={() => signOut({ callbackUrl: "/auth/login" })}
               className={cn(
-                "text-sm transition-colors duration-200",
-                isActive
-                  ? "font-normal text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                "flex w-full items-center gap-3 px-2 py-2 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground",
+                collapsed && "justify-center",
               )}
             >
-              {item.label}
-            </Link>
-          );
-        })}
-        {session && (
-          <button
-            onClick={() => signOut({ callbackUrl: "/auth/login" })}
-            className="ml-auto text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
-          >
-            Sign out
-          </button>
+              <LogOut className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>Sign out</span>}
+            </button>
+          </div>
         )}
-      </nav>
+      </aside>
 
-      {children}
+      <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );
 }
