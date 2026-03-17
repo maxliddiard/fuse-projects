@@ -32,7 +32,7 @@ export function UnverifiedEmail({
             {loading ? "Resending..." : "Resend Verification Email"}
           </Button>
         ) : (
-          <p className="text-center text-green-600">
+          <p className="text-center text-foreground font-medium">
             Verification email resent!
           </p>
         )}

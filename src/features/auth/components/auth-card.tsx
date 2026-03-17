@@ -27,7 +27,7 @@ export function AuthCard({
       <Card className={cn("w-full max-w-md p-6", className)}>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <span className="text-2xl font-bold">Fuse Projects</span>
+            <span className="text-2xl font-light">Fuse Projects</span>
           </div>
           <CardTitle className="text-2xl">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}

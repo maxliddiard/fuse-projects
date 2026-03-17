@@ -51,7 +51,7 @@ export function EmailAccountsManager() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           {accounts.length} {accounts.length === 1 ? "account" : "accounts"}{" "}
           connected
         </p>

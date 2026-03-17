@@ -47,7 +47,7 @@ export default function SignupForm() {
             {...register("email")}
           />
           {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message}</p>
+            <p className="text-sm text-destructive">{errors.email.message}</p>
           )}
         </div>
 
@@ -70,7 +70,7 @@ export default function SignupForm() {
         </Button>
 
         {message && status === "error" && (
-          <p className="text-sm text-red-500">{message}</p>
+          <p className="text-sm text-destructive">{message}</p>
         )}
 
         <div className="text-center text-sm">

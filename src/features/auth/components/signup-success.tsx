@@ -19,15 +19,15 @@ export function SignupSuccess({
       <Card className="w-full max-w-md p-6">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center gap-6">
-            <div className="rounded-full bg-purple-100 p-4">
-              <MailCheck className="h-12 w-12 text-purple-600" />
+            <div className="bg-muted p-4 text-muted-foreground">
+              <MailCheck className="h-12 w-12" />
             </div>
 
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-semibold">Check Your Email</h2>
+              <h2 className="text-2xl font-light">Check Your Email</h2>
               <p className="text-sm text-muted-foreground">
                 You&apos;ll receive an email shortly at{" "}
-                <span className="font-semibold text-foreground">{email}</span>{" "}
+                <span className="font-medium text-foreground">{email}</span>{" "}
                 to activate your account.
               </p>
             </div>

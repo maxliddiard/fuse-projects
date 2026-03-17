@@ -49,7 +49,7 @@ export default function LoginForm() {
       description="Enter your email and password to log in."
     >
       {verified && (
-        <div className="rounded-md bg-green-50 border border-green-200 p-3 text-sm text-green-700">
+        <div className="border border-border bg-card p-3 text-sm text-foreground">
           Email verified successfully. Please log in.
         </div>
       )}
@@ -106,7 +106,7 @@ export default function LoginForm() {
                     </Button>
                     {resetMessage && (
                       <p
-                        className={`text-sm ${resetMessage.type === "success" ? "text-green-600" : "text-red-500"}`}
+                        className={`text-sm ${resetMessage.type === "success" ? "text-foreground" : "text-destructive"}`}
                       >
                         {resetMessage.text}
                       </p>
@@ -130,7 +130,7 @@ export default function LoginForm() {
         </div>
       </form>
 
-      {message && <p className="mt-2 text-red-500">{message}</p>}
+      {message && <p className="mt-2 text-destructive">{message}</p>}
 
       <div className="mt-4 text-center text-sm">
         Don&apos;t have an account?{" "}

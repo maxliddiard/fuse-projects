@@ -81,12 +81,12 @@ export function AccountMailboxSidebar({
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
 
   return (
-    <div className="h-full flex flex-col border-r border-zinc-200 dark:border-zinc-800">
+    <div className="h-full flex flex-col border-r border-border">
       {/* Account Selector */}
       <div className="p-4">
         {accounts.length === 0 ? (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-muted-foreground">
               No accounts connected
             </p>
             <Button
@@ -116,7 +116,7 @@ export function AccountMailboxSidebar({
                     "Select Account"}
                 </div>
                 {selectedAccount?.displayName && (
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                  <div className="text-xs text-muted-foreground truncate">
                     {selectedAccount.emailAddress}
                   </div>
                 )}
@@ -138,7 +138,7 @@ export function AccountMailboxSidebar({
                     {account.displayName || account.emailAddress}
                   </div>
                   {account.displayName && (
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate w-full">
+                    <div className="text-xs text-muted-foreground truncate w-full">
                       {account.emailAddress}
                     </div>
                   )}
@@ -161,7 +161,7 @@ export function AccountMailboxSidebar({
         <>
           <Separator />
           <div className="px-4 py-2">
-            <h3 className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+            <h3 className="text-xs font-normal text-muted-foreground uppercase tracking-[0.15em]">
               Mailboxes
             </h3>
           </div>
@@ -180,7 +180,7 @@ export function AccountMailboxSidebar({
                     onClick={() => onMailboxSelect(mailbox.name)}
                     className={cn(
                       "w-full justify-between mb-1 h-9 px-3",
-                      isSelected && "bg-zinc-100 dark:bg-zinc-800",
+                      isSelected && "bg-muted",
                     )}
                   >
                     <div className="flex items-center gap-3">

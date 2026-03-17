@@ -33,7 +33,7 @@ export default function ResetPasswordForm() {
         </Button>
         {message && (
           <p
-            className={`text-sm ${message.type === "success" ? "text-green-600" : "text-red-500"}`}
+            className={`text-sm ${message.type === "success" ? "text-foreground" : "text-destructive"}`}
           >
             {message.text}
           </p>

@@ -64,12 +64,12 @@ export function InlineReplyComposer({
   };
 
   return (
-    <div className={cn("border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950", className)}>
+    <div className={cn("border-t border-border bg-card", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="flex items-center justify-between p-3 border-b border-border bg-muted">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-sm text-zinc-900 dark:text-zinc-50">Reply</span>
-          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="font-normal text-sm text-foreground">Reply</span>
+          <span className="text-xs text-muted-foreground">
             to {originalMessage.fromName || originalMessage.fromAddress}
           </span>
         </div>
@@ -98,7 +98,7 @@ export function InlineReplyComposer({
               variant="ghost"
               size="sm"
               onClick={() => setShowCcBcc(!showCcBcc)}
-              className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50"
+              className="text-xs text-muted-foreground hover:text-foreground"
             >
               Cc
             </Button>

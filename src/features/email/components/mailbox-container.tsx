@@ -116,7 +116,7 @@ export default function MailboxContainer() {
   if (accountsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-zinc-50"></div>
+        <div className="animate-spin h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
@@ -142,14 +142,14 @@ export default function MailboxContainer() {
         {selectedAccount ? (
           <>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 flex-shrink-0">
+            <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+                <h2 className="text-xl font-light text-foreground">
                   {mailboxes.find((m) => m.name === selectedMailbox)
                     ?.displayName || selectedMailbox}
                 </h2>
                 {viewMode === "conversation" && selectedMessage && (
-                  <span className="text-sm text-zinc-500 dark:text-zinc-400">
+                  <span className="text-sm text-muted-foreground">
                     &rsaquo; {selectedMessage.subject || "(no subject)"}
                   </span>
                 )}
@@ -158,7 +158,7 @@ export default function MailboxContainer() {
               <div className="flex items-center gap-2">
                 {viewMode === "table" && (
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search messages..."
                       value={searchQuery}
@@ -209,7 +209,7 @@ export default function MailboxContainer() {
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center justify-center h-full text-muted-foreground">
             {accounts.length === 0
               ? "Connect an email account to get started"
               : "Select an account from the sidebar"}
