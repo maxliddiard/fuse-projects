@@ -10,20 +10,25 @@ Always consult `design-system.md` at the project root before writing or modifyin
 ## Key Rules
 
 - **Colors**: Use semantic CSS variables only (`bg-background`, `text-foreground`, `border-border`, `text-muted-foreground`, `bg-card`, `bg-muted`). Never use raw hex, rgb, oklch, or Tailwind color scales like `zinc-*`, `blue-*`, `purple-*`.
-- **Radius**: `--radius` is `0px`. Never add `rounded-*` classes to cards, tables, badges, or containers.
+- **Radius**: `--radius` is `6px`. Subtle rounding on cards, inputs, badges. Do not use large values like `rounded-xl` or `rounded-2xl`.
 - **Shadows**: No `shadow-sm`, `shadow-md`, or any box shadows on cards or containers.
 - **Gradients**: No `bg-gradient-to-*` on any element.
-- **Typography**: Base weight is 200 (extra-light). Use `font-light` (300) or `font-normal` (400) for emphasis. Never use `font-bold` or `font-semibold` on headings — use `font-light` + larger size instead. Use `font-medium` (500) sparingly.
+- **Typography**: Base weight is 300 (light). Use `font-normal` (400) for headings/emphasis. Never use `font-bold` or `font-semibold` on headings. Use `font-medium` (500) sparingly.
 - **Hover states**: Subtle only — `hover:border-foreground/20` or text color shift with `transition-colors duration-200`.
-- **Accents**: No purple, indigo, or saturated colors. Use warm neutral grays from the token palette.
+- **Accents**: Purple (`--info`) is reserved for AI-flagged elements (Sales badges, analysis banners). Use via `bg-info`/`text-info-foreground` or the `info` Badge variant. No other saturated colors.
 
 ## Shared Components — Use These Instead of Raw Classes
 
 Always prefer these components over writing class strings by hand:
 
-- **`<AppLayout>`** (`@/components/layout/app-layout`) — Wraps every authenticated page. Provides the nav bar and page shell. Never duplicate the nav markup in pages.
-- **`<StatCard label="..." value="..." href?="..." />`** (`@/components/ui/stat-card`) — Use for any label + value display card. Encodes the design system stat pattern.
-- **`<PageHeader title="..." description?="..." size?="default"|"sm" />`** (`@/components/ui/page-header`) — Use for page titles instead of writing `h1` + `p` with raw classes.
+- **`<AppLayout>`** (`@/components/layout/app-layout`) — Wraps every authenticated page. Provides sidebar nav and page shell.
+- **`<PageHeader title="..." description?="..." size?="default"|"sm" />`** (`@/components/ui/page-header`) — Use for page titles. Never write raw `h1` + `p`.
+- **`<SectionHeader as?="h2"|"h3"|"p">`** (`@/components/ui/section-header`) — Uppercase tracking label for section dividers.
+- **`<LoadingSpinner size?="sm"|"default"|"lg" />`** (`@/components/ui/loading-spinner`) — Spinner for loading states. Never write inline `animate-spin` divs.
+- **`<StatCard label="..." value="..." href?="..." />`** (`@/components/ui/stat-card`) — Label + value display card.
+- **`<Badge variant="...">`** (`@/components/ui/badge`) — Use for all inline labels, tags, and badges. Never write raw `<span>` badges.
+- **Project categories**: Import from `@/features/projects/config/categories` (`PROJECT_CATEGORIES`, `ProjectCategory`, `VALID_CATEGORIES`).
+- **Background gradients**: Import from `@/hooks/use-background-preference` (`APP_BACKGROUNDS`). Never inline raw gradient strings.
 
 ## When to Extract a New Component
 
@@ -32,15 +37,23 @@ If the same combination of Tailwind classes appears in 3+ places, extract it int
 ## Quick Reference
 
 ```tsx
-// Stat card (use the component)
-<StatCard label="Active Projects" value="3 in progress" />
-<StatCard label="Mailbox" value="View email" href="/mailbox" />
-
-// Page header (use the component)
+// Page header
 <PageHeader title="Email Settings" description="Manage your accounts" size="sm" />
 
-// Section header (inline — not yet a component)
-<h2 className="text-xs font-normal uppercase tracking-[0.15em] text-muted-foreground">Recent Deals</h2>
+// Section header
+<SectionHeader>Recent Deals</SectionHeader>
+
+// Loading spinner
+<LoadingSpinner />
+<LoadingSpinner size="lg" />
+
+// Category badge
+<Badge variant={PROJECT_CATEGORIES[category].variant}>
+  {PROJECT_CATEGORIES[category].label}
+</Badge>
+
+// Stat card
+<StatCard label="Active Projects" value="3 in progress" />
 
 // Table wrapper
 <div className="w-full overflow-hidden border border-border bg-card">

@@ -16,6 +16,7 @@ import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { SectionHeader } from "@/components/ui/section-header";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -161,9 +162,7 @@ export function AccountMailboxSidebar({
         <>
           <Separator />
           <div className="px-4 py-2">
-            <h3 className="text-xs font-normal text-muted-foreground uppercase tracking-[0.15em]">
-              Mailboxes
-            </h3>
+            <SectionHeader as="h3">Mailboxes</SectionHeader>
           </div>
 
           <ScrollArea className="flex-1">

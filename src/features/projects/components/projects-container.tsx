@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { SyncStatusBanner } from "@/features/email/components/sync-status-banner";
 import { useAccounts } from "@/features/email/hooks/use-accounts";
 import { useSyncStatus } from "@/features/email/hooks/use-sync-status";
@@ -17,7 +18,6 @@ export function ProjectsContainer() {
   const { accounts, loading: accountsLoading } = useAccounts();
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  // Auto-select first account
   const accountId = selectedAccountId || accounts[0]?.id || null;
 
   const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects(accountId);
@@ -37,7 +37,7 @@ export function ProjectsContainer() {
 
   if (accountsLoading) {
     return (
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <p className="text-sm text-muted-foreground">
         Loading accounts...
       </p>
     );
@@ -45,8 +45,8 @@ export function ProjectsContainer() {
 
   if (accounts.length === 0) {
     return (
-      <div className="rounded-xl border border-zinc-200 p-6 text-center dark:border-zinc-800">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="border border-border bg-card p-6 text-center">
+        <p className="text-sm text-muted-foreground">
           No email accounts connected. Connect a Gmail account in Settings to get started.
         </p>
       </div>
@@ -58,13 +58,12 @@ export function ProjectsContainer() {
 
   return (
     <div className="space-y-6">
-      {/* Account selector + action bar */}
       <div className="flex items-center gap-4">
         {accounts.length > 1 && (
           <select
             value={accountId || ""}
             onChange={(e) => setSelectedAccountId(e.target.value)}
-            className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="border border-border bg-card px-3 py-2 text-sm text-foreground"
           >
             {accounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
@@ -74,31 +73,29 @@ export function ProjectsContainer() {
           </select>
         )}
         {accounts.length === 1 && (
-          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+          <span className="text-sm text-muted-foreground">
             {accounts[0].emailAddress}
           </span>
         )}
-        <button
+        <Button
           onClick={handleRunAnalysis}
           disabled={triggering || isRunning || isSyncing}
-          className="ml-auto rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          className="ml-auto bg-info text-info-foreground hover:bg-info/90"
         >
           {isSyncing ? "Syncing..." : isRunning ? "Running..." : "Run Analysis"}
-        </button>
+        </Button>
       </div>
 
-      {/* Sync + Pipeline status */}
       <SyncStatusBanner status={syncStatus} />
       <PipelineStatusBanner run={run} />
 
-      {/* Project cards */}
       {projectsLoading ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-muted-foreground">
           Loading projects...
         </p>
       ) : projects.length === 0 ? (
-        <div className="rounded-xl border border-zinc-200 p-6 text-center dark:border-zinc-800">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="border border-border bg-card p-6 text-center">
+          <p className="text-sm text-muted-foreground">
             No accounts discovered yet. Click &quot;Run Analysis&quot; to analyze your email.
           </p>
         </div>

@@ -15,7 +15,7 @@ export function ConnectEmailPrompt() {
         <Mail className="h-8 w-8" />
       </div>
 
-      <h1 className="mt-8 text-3xl font-light tracking-tight text-foreground">
+      <h1 className="mt-8 text-3xl font-normal tracking-tight text-foreground">
         Connect your email to get started
       </h1>
       <p className="mt-3 text-muted-foreground">

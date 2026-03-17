@@ -41,7 +41,7 @@ export function AuthCard({
         <div className="flex items-center justify-center bg-card px-8 py-16">
           <div className={cn("w-full max-w-md", className)}>
             <div className="mb-8">
-              <h2 className="text-2xl font-light text-foreground">{title}</h2>
+              <h2 className="text-2xl font-normal text-foreground">{title}</h2>
               {description && (
                 <p className="mt-2 text-sm text-muted-foreground">
                   {description}
@@ -60,7 +60,7 @@ export function AuthCard({
       <Card className={cn("w-full max-w-md p-6", className)}>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <span className="text-2xl font-light">Fuse Projects</span>
+            <span className="text-2xl font-normal">Fuse Projects</span>
           </div>
           <CardTitle className="text-2xl">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}

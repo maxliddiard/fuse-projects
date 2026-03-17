@@ -1,6 +1,7 @@
 "use client";
 
 import { AppLayout } from "@/components/layout/app-layout";
+import { PageHeader } from "@/components/ui/page-header";
 
 const messages = [
   {
@@ -41,12 +42,10 @@ export default function Inbox() {
   return (
     <AppLayout>
       <main className="mx-auto max-w-3xl px-8 py-16">
-        <h1 className="text-4xl font-light tracking-tight text-foreground">
-          Inbox
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {messages.filter((m) => m.unread).length} unread messages
-        </p>
+        <PageHeader
+          title="Inbox"
+          description={`${messages.filter((m) => m.unread).length} unread messages`}
+        />
 
         <div className="mt-8 divide-y divide-border border border-border">
           {messages.map((msg) => (

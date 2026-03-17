@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { APP_BACKGROUNDS } from "@/hooks/use-background-preference";
+
 import { useSignup } from "../hooks/use-signup";
 import { useSignupForm } from "../hooks/use-signup-form";
 import { AuthCard } from "./auth-card";
@@ -34,10 +36,10 @@ export default function SignupForm() {
 
   const brandPanel = (
     <div className="flex flex-col gap-8">
-      <span className="text-2xl font-light text-foreground">Fuse Projects</span>
+      <span className="text-2xl font-normal text-foreground">Fuse Projects</span>
 
       <div className="flex flex-col gap-4">
-        <h1 className="text-4xl font-light leading-tight text-muted-foreground">
+        <h1 className="text-4xl font-normal leading-tight text-muted-foreground">
           <span className="text-foreground font-medium">Try it for free.</span>{" "}
           Turn client emails into branded deliverables in less than{" "}
           <span className="text-foreground font-medium">5 minutes</span>.
@@ -55,10 +57,7 @@ export default function SignupForm() {
       title="Create Your Account"
       description="Sign up to get started."
       leftPanel={brandPanel}
-      leftPanelStyle={{
-        background:
-          "linear-gradient(135deg, hsl(40 55% 95%) 0%, hsl(28 65% 89%) 50%, hsl(20 70% 86%) 100%)",
-      }}
+      leftPanelStyle={{ background: APP_BACKGROUNDS.warm }}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
         <div className="grid gap-2">
