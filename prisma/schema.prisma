@@ -37,9 +37,11 @@ model EmailAccount {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  mailboxes     Mailbox[]
-  conversations EmailConversation[]
-  messages      EmailMessage[]
+  mailboxes          Mailbox[]
+  conversations      EmailConversation[]
+  messages           EmailMessage[]
+  discoveredAccounts DiscoveredAccount[]
+  pipelineRuns       PipelineRun[]
 
   @@unique([userId, emailAddress])
 }
@@ -142,6 +144,47 @@ model MessageAddress {
   type      String
   address   String
   name      String?
+}
+
+model DiscoveredAccount {
+  id              String   @id @default(uuid())
+  emailAccountId  String
+  emailAccount    EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+  domain          String
+  displayName     String?
+  emailAddresses  String        // JSON array of addresses seen
+  messageCount    Int           @default(0)
+  sentCount       Int           @default(0)
+  receivedCount   Int           @default(0)
+  isBidirectional Boolean       @default(false)
+  firstSeenAt     DateTime?
+  lastSeenAt      DateTime?
+  category        String?       // SALES | MANAGEMENT | OTHER
+  categoryReason  String?
+  salesInsights   String?       // JSON: { contacts, dealStage, recentActivitySummary, keyTopics }
+  pipelineRunId   String?
+  categorizedAt   DateTime?
+  exploredAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([emailAccountId, domain])
+}
+
+model PipelineRun {
+  id                  String   @id @default(uuid())
+  emailAccountId      String
+  emailAccount        EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+  status              String   @default("RUNNING")   // RUNNING | COMPLETED | FAILED
+  stage               String   @default("DISCOVERY") // DISCOVERY | CATEGORIZATION | EXPLORATION | COMPLETED
+  accountsFound       Int      @default(0)
+  accountsCategorized Int      @default(0)
+  salesExplored       Int      @default(0)
+  error               String?
+  startedAt           DateTime @default(now())
+  completedAt         DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model VerificationToken {

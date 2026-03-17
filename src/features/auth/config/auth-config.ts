@@ -1,4 +1,4 @@
-import type { Session } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -6,7 +6,7 @@ import { UserRepository } from "@/lib/repositories/user-repository";
 
 import { AuthUtils } from "../utils/auth-utils";
 
-export const authOptions: any = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -38,13 +38,13 @@ export const authOptions: any = {
     updateAge: 60 * 5,
   },
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }) {
       if (user) {
         token.emailVerifiedAt = user.emailVerifiedAt;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;
 
@@ -60,13 +60,13 @@ export const authOptions: any = {
 };
 
 export async function getAuthenticatedUser() {
-  const session = (await getServerSession(authOptions)) as Session | null;
+  const session = await getServerSession(authOptions);
 
-  if (!session || !session.user || !(session.user as any).id) {
+  if (!session || !session.user || !session.user.id) {
     return { error: "Unauthorized", status: 401 };
   }
 
-  const userId = (session.user as any).id;
+  const userId = session.user.id;
   const user = await UserRepository.findById(userId);
 
   if (!user) {

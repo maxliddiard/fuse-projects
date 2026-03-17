@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { AuthService } from "@/features/auth/server";
-import {
-  formatErrorResponse,
-  getErrorStatusCode,
-  isOperationalError,
-} from "@/lib/errors";
+import { isOperationalError } from "@/lib/errors";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);

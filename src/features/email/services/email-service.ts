@@ -1,6 +1,7 @@
 import { EmailAccountNotFoundError } from "@/lib/errors";
 import prisma from "@/lib/prisma/client";
 import { EmailAccountRepository } from "@/lib/repositories/email-account-repository";
+import { PipelineOrchestrator } from "@/features/pipeline/server";
 
 import { EmailSyncService } from "./email-sync-service";
 import { GmailApiService } from "./gmail-api-service";
@@ -34,6 +35,11 @@ export class EmailService {
     try {
       const syncService = await EmailSyncService.fromAccountId(account.id);
       await syncService.performInitialSync();
+
+      // Auto-trigger pipeline after first sync completes
+      PipelineOrchestrator.runForAccount(account.id).catch((err) => {
+        console.error("Auto-pipeline after OAuth sync failed (non-blocking):", err);
+      });
     } catch (err) {
       console.error("Initial sync failed (non-blocking):", err);
     }
