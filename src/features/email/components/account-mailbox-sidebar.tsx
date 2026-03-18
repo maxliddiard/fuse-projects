@@ -48,6 +48,17 @@ interface AccountMailboxSidebarProps {
   onSyncAccount?: (accountId: string) => void;
 }
 
+const ROLE_PRIORITY: Record<string, number> = {
+  INBOX: 0,
+  SENT: 1,
+  DRAFTS: 2,
+  STARRED: 3,
+  IMPORTANT: 4,
+  SPAM: 5,
+  TRASH: 6,
+  ALL_MAIL: 7,
+};
+
 const getMailboxIcon = (name: string) => {
   switch (name.toUpperCase()) {
     case "INBOX":
@@ -167,7 +178,12 @@ export function AccountMailboxSidebar({
 
           <ScrollArea className="flex-1">
             <div className="px-2 pb-4">
-              {mailboxes.map((mailbox) => {
+              {[...mailboxes].sort((a, b) => {
+                const pa = ROLE_PRIORITY[a.role ?? ""] ?? 99;
+                const pb = ROLE_PRIORITY[b.role ?? ""] ?? 99;
+                if (pa !== pb) return pa - pb;
+                return a.displayName.localeCompare(b.displayName);
+              }).map((mailbox) => {
                 const Icon = getMailboxIcon(mailbox.name);
                 const isSelected = selectedMailbox === mailbox.name;
 
