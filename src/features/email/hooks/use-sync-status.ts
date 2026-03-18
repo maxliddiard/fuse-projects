@@ -46,9 +46,11 @@ export function useSyncStatus(
       const current = await fetchStatus();
       if (!current) return;
 
-      // Detect transition from SYNCING → IDLE/FAILED
       if (prevSyncing.current && current.syncStatus !== "SYNCING") {
         onComplete?.();
+
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
       prevSyncing.current = current.syncStatus === "SYNCING";
     }, 2000);

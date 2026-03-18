@@ -62,6 +62,9 @@ export function usePipelineStatus(
           toast.error(current.error || "Pipeline failed");
         }
         onComplete?.();
+
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
       prevRunning.current = current.status === "RUNNING";
     }, 3000);

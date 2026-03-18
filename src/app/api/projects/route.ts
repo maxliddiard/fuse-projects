@@ -42,8 +42,10 @@ export async function GET(request: NextRequest) {
   // Sort by category priority: SALES > MANAGEMENT > OTHER > uncategorized
   const categoryOrder: Record<string, number> = {
     SALES: 0,
-    MANAGEMENT: 1,
-    OTHER: 2,
+    INVESTOR: 1,
+    SUPPLIER: 2,
+    MANAGEMENT: 3,
+    OTHER: 4,
   };
 
   projects.sort((a, b) => {

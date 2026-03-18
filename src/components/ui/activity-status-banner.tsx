@@ -27,20 +27,7 @@ export function ActivityStatusBanner({
   const segments: string[] = [];
 
   if (isSyncing) {
-    const effectiveTotal = Math.max(
-      syncStatus.syncedMessages,
-      syncStatus.totalMessages,
-    );
-    const pct =
-      effectiveTotal > 0
-        ? Math.min(
-            Math.round((syncStatus.syncedMessages / effectiveTotal) * 100),
-            100,
-          )
-        : 0;
-    segments.push(
-      `Syncing emails… ${syncStatus.syncedMessages.toLocaleString()} of ~${effectiveTotal.toLocaleString()} (${pct}%)`,
-    );
+    segments.push("Scanning emails…");
   }
 
   if (isRunning) {

@@ -31,20 +31,21 @@ export class EmailService {
       vendorAccountId: userInfo.id,
     });
 
-    // Fire-and-forget: sync emails, start pipeline after first page of results
-    // This runs in the background so the OAuth redirect isn't blocked
+    // Phase 1: Quick metadata scan → pipeline (discovery + categorization)
+    // Phase 2: Targeted full sync for SALES domains → exploration
     EmailSyncService.fromAccountId(account.id)
       .then(async (syncService) => {
-        await syncService.performInitialSync(() => {
-          // Start pipeline after first page — don't wait for full sync
-          console.log("[EmailSync] First page done, starting pipeline early");
-          PipelineOrchestrator.runForAccount(account.id).catch((err) => {
-            console.error("Early pipeline trigger failed:", err);
-          });
-        });
+        await syncService.performQuickScan();
+
+        const runId = await PipelineOrchestrator.runForAccount(account.id);
+        console.log(`[Pipeline] Completed analysis run ${runId}`);
+
+        // Phase 2: full sync + exploration for SALES domains only
+        await syncService.syncSalesDomains(account.id);
+        await PipelineOrchestrator.runExploration(account.id);
       })
       .catch((err) => {
-        console.error("Background sync failed:", err);
+        console.error("Background scan/pipeline failed:", err);
       });
 
     return account;
@@ -63,9 +64,6 @@ export class EmailService {
       throw new EmailAccountNotFoundError(accountId);
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/1e1bfd83-74ce-4756-947d-8b60e9e11940',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'email-service.ts:disconnectAccount',message:'about-to-delete',data:{accountId,syncStatus:account.syncStatus},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
-    // #endregion
     await EmailAccountRepository.delete(accountId);
   }
 

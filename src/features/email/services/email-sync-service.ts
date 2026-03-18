@@ -76,6 +76,7 @@ export class EmailSyncService {
     query?: string,
     maxResults = 500,
     onFirstPage?: () => void,
+    maxPages = 10,
   ) {
     let totalSynced = 0;
     let totalFetched = 0;
@@ -167,7 +168,11 @@ export class EmailSyncService {
       if (page === 1) {
         onFirstPage?.();
       }
-    } while (pageToken);
+    } while (pageToken && page < maxPages);
+
+    if (page >= maxPages && pageToken) {
+      console.log(`[EmailSync] Reached page cap (${maxPages}), stopping sync`);
+    }
 
     console.log(
       `[EmailSync] Complete: ${totalSynced} synced, ${totalFetched} total fetched`,
@@ -403,6 +408,184 @@ export class EmailSyncService {
         });
       }
     }
+  }
+
+  async performQuickScan(): Promise<{ scanned: number }> {
+    console.log("[QuickScan] Starting sent-first metadata scan (last 90 days)...");
+    const scanStart = performance.now();
+
+    try {
+      await prisma.emailAccount.update({
+        where: { id: this.accountId },
+        data: { syncStatus: "SYNCING" },
+      });
+
+      // List only SENT message IDs from the last 90 days
+      const sentIds: string[] = [];
+      let pageToken: string | undefined;
+      let page = 0;
+
+      do {
+        page++;
+        const response = await this.client.listMessages(
+          "in:sent newer_than:90d",
+          500,
+          pageToken,
+        );
+        if (!response.messages) break;
+
+        const ids = response.messages.map((m) => m.id!).filter(Boolean);
+        sentIds.push(...ids);
+        pageToken = response.nextPageToken ?? undefined;
+        console.log(`[QuickScan] Listed page ${page}: ${ids.length} sent IDs (total: ${sentIds.length})`);
+      } while (pageToken);
+
+      const listMs = Math.round(performance.now() - scanStart);
+      console.log(`[QuickScan] Listed ${sentIds.length} sent messages in ${listMs}ms`);
+
+      // Batch-fetch metadata for sent messages (headers only, no body)
+      let saved = 0;
+      const SAVE_BATCH = 100;
+
+      for (let i = 0; i < sentIds.length; i += SAVE_BATCH) {
+        const chunk = sentIds.slice(i, i + SAVE_BATCH);
+        const metadataResults = await this.client.getMessageMetadataBatch(chunk);
+
+        for (const msgResponse of metadataResults) {
+          const msg = msgResponse.data;
+          if (!msg.id || !msg.payload?.headers) continue;
+
+          const headers = this.client.parseMessageHeaders(msg.payload.headers);
+          const fromAddress = this.extractEmail(headers.from);
+          if (!fromAddress) continue;
+
+          const date = headers.date ? new Date(headers.date) : new Date();
+
+          try {
+            const existing = await prisma.emailMessage.findFirst({
+              where: { accountId: this.accountId, externalId: msg.id },
+              select: { id: true },
+            });
+
+            if (!existing) {
+              const message = await prisma.emailMessage.create({
+                data: {
+                  accountId: this.accountId,
+                  externalId: msg.id,
+                  subject: headers.subject,
+                  snippet: msg.snippet,
+                  fromName: this.extractName(headers.from),
+                  fromAddress,
+                  date,
+                  hasAttachments: false,
+                },
+              });
+
+              if (headers.to) {
+                const toAddresses = this.parseAddressList(headers.to);
+                if (toAddresses.length > 0) {
+                  await prisma.messageAddress.createMany({
+                    data: toAddresses.map(({ email, name }) => ({
+                      messageId: message.id,
+                      type: "TO",
+                      address: email,
+                      name: name || null,
+                    })),
+                  });
+                }
+              }
+
+              saved++;
+            }
+          } catch (err) {
+            if (this.isAccountGoneError(err)) {
+              this.aborted = true;
+              break;
+            }
+          }
+        }
+
+        if (this.aborted) break;
+
+        const pct = Math.round(((i + chunk.length) / sentIds.length) * 100);
+        console.log(`[QuickScan] Metadata progress: ${i + chunk.length}/${sentIds.length} (${pct}%)`);
+      }
+
+      if (!this.aborted) {
+        await prisma.emailAccount.update({
+          where: { id: this.accountId },
+          data: { syncStatus: "SCANNED", lastSyncedAt: new Date() },
+        });
+      }
+
+      const totalMs = Math.round(performance.now() - scanStart);
+      console.log(`[QuickScan] Complete: ${saved} sent messages saved in ${totalMs}ms`);
+      return { scanned: saved };
+    } catch (error) {
+      console.error("[QuickScan] Failed:", error);
+      await prisma.emailAccount.update({
+        where: { id: this.accountId },
+        data: { syncStatus: "FAILED" },
+      }).catch(() => {});
+      throw error;
+    }
+  }
+
+  async syncSalesDomains(emailAccountId: string): Promise<number> {
+    const salesAccounts = await prisma.discoveredAccount.findMany({
+      where: { emailAccountId, category: "SALES" },
+      select: { domain: true },
+    });
+
+    if (salesAccounts.length === 0) return 0;
+
+    console.log(`[SalesSync] Syncing full content for ${salesAccounts.length} SALES domains`);
+    let totalSynced = 0;
+
+    for (const { domain } of salesAccounts) {
+      const query = `(from:@${domain} OR to:@${domain}) newer_than:90d`;
+      let pageToken: string | undefined;
+      let domainSynced = 0;
+
+      do {
+        const response = await this.client.listMessages(query, 100, pageToken);
+        if (!response.messages) break;
+
+        const messageIds = response.messages.map((m) => m.id!).filter(Boolean);
+        const BATCH_SIZE = 25;
+
+        for (let i = 0; i < messageIds.length; i += BATCH_SIZE) {
+          const chunk = messageIds.slice(i, i + BATCH_SIZE);
+          const messages = await this.client.getMessageBatch(chunk);
+
+          for (const msgResponse of messages) {
+            if (await this.saveMessage(msgResponse.data)) {
+              domainSynced++;
+            }
+            if (this.aborted) break;
+          }
+          if (this.aborted) break;
+        }
+
+        pageToken = response.nextPageToken ?? undefined;
+        if (this.aborted) break;
+      } while (pageToken);
+
+      totalSynced += domainSynced;
+      console.log(`[SalesSync] ${domain}: synced ${domainSynced} full messages`);
+
+      if (this.aborted) break;
+    }
+
+    if (!this.aborted) {
+      await prisma.emailAccount.update({
+        where: { id: this.accountId },
+        data: { syncStatus: "IDLE" },
+      });
+    }
+
+    console.log(`[SalesSync] Complete: ${totalSynced} full messages synced across ${salesAccounts.length} domains`);
+    return totalSynced;
   }
 
   async performInitialSync(onFirstPage?: () => void) {

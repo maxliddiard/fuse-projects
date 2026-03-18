@@ -42,6 +42,10 @@ export class SalesExplorationService {
       for (const result of results) {
         if (result.status === "fulfilled") explored++;
       }
+
+      if (i + BATCH_SIZE < salesAccounts.length) {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
     }
 
     return explored;
@@ -141,7 +145,10 @@ Body: ${bodyText}
         },
       });
     } catch (error) {
-      console.error(`Failed to explore sales domain ${domain}:`, error);
+      const isGone = (error as { code?: string })?.code === "P2025";
+      if (!isGone) {
+        console.error(`Failed to explore sales domain ${domain}:`, error);
+      }
     }
   }
 }

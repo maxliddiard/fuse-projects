@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ActivityStatusBanner } from "@/components/ui/activity-status-banner";
@@ -19,29 +19,16 @@ export function ProjectsContainer() {
 
   const accountId = selectedAccountId || accounts[0]?.id || null;
 
-  const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects(accountId);
   const { trigger, triggering } = useTriggerPipeline();
 
-  const handlePipelineComplete = useCallback(() => {
-    refetchProjects();
-  }, [refetchProjects]);
-
-  const { run, startPolling } = usePipelineStatus(accountId, handlePipelineComplete);
+  const { run, startPolling } = usePipelineStatus(accountId);
   const { status: syncStatus } = useSyncStatus(accountId);
 
-  const prevRunSnapshot = useRef({ accountsFound: 0, stage: "" });
-  useEffect(() => {
-    const found = run?.accountsFound ?? 0;
-    const stage = run?.stage ?? "";
-    const prev = prevRunSnapshot.current;
-    const changed =
-      (found > 0 && found !== prev.accountsFound) ||
-      (stage !== "" && stage !== prev.stage);
-    if (changed) {
-      prevRunSnapshot.current = { accountsFound: found, stage };
-      refetchProjects();
-    }
-  }, [run?.accountsFound, run?.stage, refetchProjects]);
+  const isRunning = run?.status === "RUNNING";
+  const isSyncing = syncStatus?.syncStatus === "SYNCING";
+  const isActive = isRunning || isSyncing;
+
+  const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects(accountId, isActive);
 
   const handleRunAnalysis = async () => {
     if (!accountId) return;
@@ -66,9 +53,6 @@ export function ProjectsContainer() {
       </div>
     );
   }
-
-  const isRunning = run?.status === "RUNNING";
-  const isSyncing = syncStatus?.syncStatus === "SYNCING";
 
   return (
     <div className="space-y-6">
@@ -106,7 +90,7 @@ export function ProjectsContainer() {
         <p className="text-sm text-muted-foreground">
           Loading projects...
         </p>
-      ) : projects.length === 0 ? (
+      ) : projects.length === 0 && !isRunning && !isSyncing ? (
         <div className="border border-border bg-card p-6 text-center">
           <p className="text-sm text-muted-foreground">
             No accounts discovered yet. Click &quot;Run Analysis&quot; to analyze your email.
