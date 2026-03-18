@@ -50,15 +50,15 @@ export function EmailAccountsManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {accounts.length} {accounts.length === 1 ? "account" : "accounts"}{" "}
-          connected
-        </p>
+      <div className="flex items-center gap-4">
         <Button onClick={connect} disabled={connecting}>
           <Mail className="mr-2 h-4 w-4" />
           {connecting ? "Connecting..." : "Connect Gmail"}
         </Button>
+        <p className="text-sm text-muted-foreground">
+          {accounts.length} {accounts.length === 1 ? "account" : "accounts"}{" "}
+          connected
+        </p>
       </div>
 
       <EmailAccountsTable

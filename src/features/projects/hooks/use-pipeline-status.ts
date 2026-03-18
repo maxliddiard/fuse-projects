@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 export interface PipelineRunDTO {
   id: string;
@@ -21,14 +22,15 @@ export function usePipelineStatus(
 ) {
   const [run, setRun] = useState<PipelineRunDTO | null>(null);
   const [loading, setLoading] = useState(false);
+  const [polling, setPolling] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchStatus = useCallback(async () => {
-    if (!accountId) return;
+    if (!accountId) return null;
     try {
       setLoading(true);
       const response = await fetch(`/api/pipeline/status?accountId=${accountId}`);
-      if (!response.ok) return;
+      if (!response.ok) return null;
       const data = await response.json();
       setRun(data.run);
       return data.run as PipelineRunDTO | null;
@@ -40,14 +42,29 @@ export function usePipelineStatus(
     }
   }, [accountId]);
 
-  // Poll while pipeline is running
+  const startPolling = useCallback(() => {
+    setPolling(true);
+  }, []);
+
   useEffect(() => {
     fetchStatus();
+  }, [fetchStatus]);
+
+  useEffect(() => {
+    if (!polling) return;
 
     intervalRef.current = setInterval(async () => {
       const currentRun = await fetchStatus();
       if (currentRun && currentRun.status !== "RUNNING") {
         if (intervalRef.current) clearInterval(intervalRef.current);
+        setPolling(false);
+        if (currentRun.status === "COMPLETED") {
+          toast.success(
+            `Analysis complete — ${currentRun.accountsFound} accounts found, ${currentRun.accountsCategorized} categorized, ${currentRun.salesExplored} sales analyzed`,
+          );
+        } else if (currentRun.status === "FAILED") {
+          toast.error(currentRun.error || "Pipeline failed");
+        }
         onComplete?.();
       }
     }, 3000);
@@ -55,7 +72,7 @@ export function usePipelineStatus(
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [fetchStatus, onComplete]);
+  }, [polling, fetchStatus, onComplete]);
 
-  return { run, loading, refetch: fetchStatus };
+  return { run, loading, refetch: fetchStatus, startPolling };
 }

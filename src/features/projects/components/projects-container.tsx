@@ -27,12 +27,13 @@ export function ProjectsContainer() {
     refetchProjects();
   }, [refetchProjects]);
 
-  const { run } = usePipelineStatus(accountId, handlePipelineComplete);
+  const { run, startPolling } = usePipelineStatus(accountId, handlePipelineComplete);
   const { status: syncStatus } = useSyncStatus(accountId);
 
   const handleRunAnalysis = async () => {
     if (!accountId) return;
     await trigger(accountId);
+    startPolling();
   };
 
   if (accountsLoading) {
