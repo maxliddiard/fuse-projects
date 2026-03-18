@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Table,
   TableBody,
@@ -31,7 +32,7 @@ export function EmailAccountsTable({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -80,7 +81,7 @@ export function EmailAccountsTable({
                 onClick={() => onDisconnect(account)}
               >
                 {disconnecting === account.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <LoadingSpinner size="sm" />
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}

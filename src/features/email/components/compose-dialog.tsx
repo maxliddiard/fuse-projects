@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useSendEmail } from "../hooks/use-send-email";
@@ -177,7 +178,7 @@ export function ComposeDialog({
             className="gap-2"
           >
             {sending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <LoadingSpinner size="sm" />
             ) : (
               <Send className="h-4 w-4" />
             )}
