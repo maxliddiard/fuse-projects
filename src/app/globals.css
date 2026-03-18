@@ -122,6 +122,11 @@
   --sidebar-ring: hsl(30 10% 40%);
 }
 
+[data-sonner-toast],
+[data-sonner-toast] > * {
+  transition-duration: 300ms !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

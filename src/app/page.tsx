@@ -1,5 +1,9 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
+
 import { AppLayout } from "@/components/layout/app-layout";
 import { ConnectEmailPrompt } from "@/components/ui/connect-email-prompt";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -24,8 +28,21 @@ function Dashboard() {
 }
 
 export default function Home() {
-  const { accounts, loading } = useEmailAccounts();
+  const { accounts, loading, refetch } = useEmailAccounts();
+  const searchParams = useSearchParams();
   const hasEmail = accounts.length > 0;
+
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const error = searchParams.get("error");
+
+    if (success === "connected") {
+      toast.success("Your Gmail account has been connected successfully.");
+      refetch();
+    } else if (error) {
+      toast.error(`Failed to connect Gmail: ${error.replace(/_/g, " ")}`);
+    }
+  }, [searchParams, refetch]);
 
   return (
     <AppLayout>

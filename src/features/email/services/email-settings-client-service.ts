@@ -8,8 +8,9 @@ export async function fetchEmailAccounts(): Promise<EmailAccountDTO[]> {
   return response.json();
 }
 
-export async function initiateGmailConnection(): Promise<{ authUrl: string }> {
-  const response = await fetch("/api/gmail/auth");
+export async function initiateGmailConnection(returnTo?: string): Promise<{ authUrl: string }> {
+  const params = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+  const response = await fetch(`/api/gmail/auth${params}`);
   if (!response.ok) {
     const data = await response.json();
     throw new Error(data.details || "Failed to initiate Gmail connection");

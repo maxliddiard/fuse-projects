@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { EmailService } from "@/features/email/server";
+import { GmailOAuthService } from "@/features/email/services/gmail-oauth-service";
+
+const FALLBACK_REDIRECT = "/settings/email";
+
+function buildRedirect(path: string, params: string, baseUrl: string) {
+  return NextResponse.redirect(new URL(`${path}?${params}`, baseUrl));
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,26 +18,21 @@ export async function GET(request: NextRequest) {
   const baseUrl = process.env.NEXTAUTH_URL || new URL(request.url).origin;
 
   if (error) {
-    return NextResponse.redirect(
-      new URL(`/settings/email?error=${error}`, baseUrl),
-    );
+    return buildRedirect(FALLBACK_REDIRECT, `error=${error}`, baseUrl);
   }
 
   if (!code || !state) {
-    return NextResponse.redirect(
-      new URL("/settings/email?error=missing_params", baseUrl),
-    );
+    return buildRedirect(FALLBACK_REDIRECT, "error=missing_params", baseUrl);
   }
+
+  const { returnTo } = GmailOAuthService.decodeState(state);
+  const redirectPath = returnTo || FALLBACK_REDIRECT;
 
   try {
     await EmailService.completeOAuthCallback(code, state);
-    return NextResponse.redirect(
-      new URL("/settings/email?success=connected", baseUrl),
-    );
+    return buildRedirect(redirectPath, "success=connected", baseUrl);
   } catch (err) {
     console.error("Gmail OAuth callback error:", err);
-    return NextResponse.redirect(
-      new URL(`/settings/email?error=oauth_failed`, baseUrl),
-    );
+    return buildRedirect(redirectPath, "error=oauth_failed", baseUrl);
   }
 }

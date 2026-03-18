@@ -127,13 +127,17 @@ export class GmailOAuthService {
     }
   }
 
-  static encodeState(data: { userId: string }): string {
+  static encodeState(data: { userId: string; returnTo: string }): string {
     return Buffer.from(
       JSON.stringify({ ...data, timestamp: Date.now() }),
     ).toString("base64");
   }
 
-  static decodeState(state: string): { userId: string; timestamp: number } {
+  static decodeState(state: string): {
+    userId: string;
+    returnTo: string;
+    timestamp: number;
+  } {
     return JSON.parse(Buffer.from(state, "base64").toString("utf-8"));
   }
 }

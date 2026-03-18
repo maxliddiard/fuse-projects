@@ -8,8 +8,8 @@ import { GmailApiService } from "./gmail-api-service";
 import { GmailOAuthService } from "./gmail-oauth-service";
 
 export class EmailService {
-  static initiateOAuthConnection(userId: string) {
-    const state = GmailOAuthService.encodeState({ userId });
+  static initiateOAuthConnection(userId: string, returnTo: string = "/") {
+    const state = GmailOAuthService.encodeState({ userId, returnTo });
     const authUrl = GmailOAuthService.getAuthUrl(state);
     return { authUrl };
   }
@@ -63,6 +63,9 @@ export class EmailService {
       throw new EmailAccountNotFoundError(accountId);
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/1e1bfd83-74ce-4756-947d-8b60e9e11940',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'email-service.ts:disconnectAccount',message:'about-to-delete',data:{accountId,syncStatus:account.syncStatus},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
+    // #endregion
     await EmailAccountRepository.delete(accountId);
   }
 
