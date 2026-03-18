@@ -1,8 +1,9 @@
-import { invokeClaudeOnBedrock } from "@/lib/bedrock/client";
+import { invokeClaudeOnBedrock, type BedrockModel } from "@/lib/bedrock/client";
 import prisma from "@/lib/prisma/client";
 
 const BATCH_SIZE = 2;
 const BODY_TRUNCATE_LENGTH = 500;
+const EXPLORATION_MODEL: BedrockModel = "haiku";
 
 const EXPLORATION_SYSTEM = `You are a CRM analyst. Given email conversations with a sales/vendor organization, extract structured insights about the commercial relationship.
 
@@ -42,30 +43,13 @@ export class SalesExplorationService {
       for (const result of results) {
         if (result.status === "fulfilled") explored++;
       }
+
+      if (i + BATCH_SIZE < salesAccounts.length) {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
     }
 
     return explored;
-  }
-
-  /** Explore specific account IDs — used for parallel exploration during categorization */
-  static async exploreAccountsByIds(
-    emailAccountId: string,
-    accountIds: string[],
-  ): Promise<void> {
-    const accounts = await prisma.discoveredAccount.findMany({
-      where: {
-        id: { in: accountIds },
-        emailAccountId,
-        salesInsights: null,
-      },
-    });
-
-    for (let i = 0; i < accounts.length; i += BATCH_SIZE) {
-      const batch = accounts.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(
-        batch.map((account) => this.exploreOne(account.id, emailAccountId, account.domain)),
-      );
-    }
   }
 
   private static async exploreOne(
@@ -104,7 +88,7 @@ export class SalesExplorationService {
         },
       },
       orderBy: { date: "desc" },
-      take: 20,
+      take: 10,
     });
 
     const emailContext = recentMessages
@@ -129,6 +113,7 @@ Body: ${bodyText}
         system: EXPLORATION_SYSTEM,
         messages: [{ role: "user", content: prompt }],
         maxTokens: 1024,
+        model: EXPLORATION_MODEL,
       });
 
       const insights = parseExplorationResponse(response);
@@ -141,7 +126,10 @@ Body: ${bodyText}
         },
       });
     } catch (error) {
-      console.error(`Failed to explore sales domain ${domain}:`, error);
+      const isGone = (error as { code?: string })?.code === "P2025";
+      if (!isGone) {
+        console.error(`Failed to explore sales domain ${domain}:`, error);
+      }
     }
   }
 }

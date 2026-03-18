@@ -3,7 +3,14 @@ import {
   InvokeModelCommand,
 } from "@aws-sdk/client-bedrock-runtime";
 
-const MODEL_ID = "us.anthropic.claude-sonnet-4-20250514-v1:0";
+export const BEDROCK_MODELS = {
+  sonnet: "us.anthropic.claude-sonnet-4-20250514-v1:0",
+  haiku: "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+} as const;
+
+export type BedrockModel = keyof typeof BEDROCK_MODELS;
+
+const DEFAULT_MODEL: BedrockModel = "sonnet";
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 2000;
 
@@ -30,6 +37,7 @@ interface InvokeClaudeParams {
   messages: Array<{ role: "user" | "assistant"; content: string }>;
   maxTokens?: number;
   temperature?: number;
+  model?: BedrockModel;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -41,7 +49,10 @@ export async function invokeClaudeOnBedrock({
   messages,
   maxTokens = 1024,
   temperature = 0.3,
+  model = DEFAULT_MODEL,
 }: InvokeClaudeParams): Promise<string> {
+  const modelId = BEDROCK_MODELS[model];
+
   const body: Record<string, unknown> = {
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: maxTokens,
@@ -54,7 +65,7 @@ export async function invokeClaudeOnBedrock({
   }
 
   const command = new InvokeModelCommand({
-    modelId: MODEL_ID,
+    modelId,
     contentType: "application/json",
     accept: "application/json",
     body: JSON.stringify(body),

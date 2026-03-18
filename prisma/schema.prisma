@@ -182,7 +182,12 @@ model PipelineRun {
   stage               String   @default("DISCOVERY") // DISCOVERY | CATEGORIZATION | EXPLORATION | COMPLETED
   accountsFound       Int      @default(0)
   accountsCategorized Int      @default(0)
+  autoSkippedCount    Int      @default(0)
   salesExplored       Int      @default(0)
+  discoveryMs         Int?
+  categorizationMs    Int?
+  explorationMs       Int?
+  totalMs             Int?
   error               String?
   startedAt           DateTime @default(now())
   completedAt         DateTime?

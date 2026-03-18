@@ -20,27 +20,17 @@ export function ActivityStatusBanner({
   pipelineRun,
 }: ActivityStatusBannerProps) {
   const isSyncing = syncStatus?.syncStatus === "SYNCING";
+  const isScanned = syncStatus?.syncStatus === "SCANNED" && !pipelineRun;
   const isRunning = pipelineRun?.status === "RUNNING";
 
-  if (!isSyncing && !isRunning) return null;
+  if (!isSyncing && !isScanned && !isRunning) return null;
 
   const segments: string[] = [];
 
   if (isSyncing) {
-    const effectiveTotal = Math.max(
-      syncStatus.syncedMessages,
-      syncStatus.totalMessages,
-    );
-    const pct =
-      effectiveTotal > 0
-        ? Math.min(
-            Math.round((syncStatus.syncedMessages / effectiveTotal) * 100),
-            100,
-          )
-        : 0;
-    segments.push(
-      `Syncing emails… ${syncStatus.syncedMessages.toLocaleString()} of ~${effectiveTotal.toLocaleString()} (${pct}%)`,
-    );
+    segments.push("Syncing emails…");
+  } else if (isScanned) {
+    segments.push("Preparing inbox…");
   }
 
   if (isRunning) {

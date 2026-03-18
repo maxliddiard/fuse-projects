@@ -77,6 +77,31 @@ export class GmailApiService {
     return Promise.all(batch);
   }
 
+  async getMessageMetadataBatch(messageIds: string[], concurrency = 100) {
+    const throttleMs = messageIds.length > 1000 ? 200 : 50;
+    const results: Awaited<ReturnType<typeof this.gmail.users.messages.get>>[] = [];
+
+    for (let i = 0; i < messageIds.length; i += concurrency) {
+      const chunk = messageIds.slice(i, i + concurrency);
+      const batch = chunk.map((id) =>
+        this.gmail.users.messages.get({
+          userId: "me",
+          id,
+          format: "metadata",
+          metadataHeaders: ["From", "To", "Subject", "Date"],
+        }),
+      );
+      const chunkResults = await Promise.all(batch);
+      results.push(...chunkResults);
+
+      if (i + concurrency < messageIds.length) {
+        await new Promise((r) => setTimeout(r, throttleMs));
+      }
+    }
+
+    return results;
+  }
+
   async sendMessage(
     to: string,
     subject: string,

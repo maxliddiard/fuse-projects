@@ -42,10 +42,6 @@ export function usePipelineStatus(
     }
   }, [accountId]);
 
-  const startPolling = useCallback(() => {
-    // no-op — polling is now automatic
-  }, []);
-
   useEffect(() => {
     fetchStatus();
 
@@ -62,6 +58,9 @@ export function usePipelineStatus(
           toast.error(current.error || "Pipeline failed");
         }
         onComplete?.();
+
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
       prevRunning.current = current.status === "RUNNING";
     }, 3000);
@@ -71,5 +70,5 @@ export function usePipelineStatus(
     };
   }, [fetchStatus, onComplete]);
 
-  return { run, loading, refetch: fetchStatus, startPolling };
+  return { run, loading, refetch: fetchStatus };
 }
