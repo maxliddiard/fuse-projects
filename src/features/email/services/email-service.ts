@@ -43,6 +43,9 @@ export class EmailService {
         // Phase 2: full sync + exploration for SALES domains only
         await syncService.syncSalesDomains(account.id);
         await PipelineOrchestrator.runExploration(account.id);
+
+        // Phase 3: background full sync to populate the Emails page (2 pages = ~1000 messages)
+        await syncService.performInitialSync(2);
       })
       .catch((err) => {
         console.error("Background scan/pipeline failed:", err);

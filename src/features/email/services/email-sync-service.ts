@@ -563,10 +563,10 @@ export class EmailSyncService {
     return totalSynced;
   }
 
-  async performInitialSync() {
+  async performInitialSync(maxPages = 10) {
     try {
       await this.syncLabels();
-      const result = await this.syncMessages(undefined, 500);
+      const result = await this.syncMessages(undefined, 500, maxPages);
 
       if (this.aborted) {
         console.log(`[EmailSync] Aborted — account ${this.accountId} was deleted`);
