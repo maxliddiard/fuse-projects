@@ -38,9 +38,18 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/1e1bfd83-74ce-4756-947d-8b60e9e11940',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/email/accounts/route.ts:DELETE',message:'disconnect-start',data:{accountId},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
+    // #endregion
     await EmailService.disconnectAccount(accountId, auth.user.id);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/1e1bfd83-74ce-4756-947d-8b60e9e11940',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/email/accounts/route.ts:DELETE',message:'disconnect-success',data:{accountId},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
+    // #endregion
     return NextResponse.json({ success: true });
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/1e1bfd83-74ce-4756-947d-8b60e9e11940',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api/email/accounts/route.ts:DELETE',message:'disconnect-error',data:{accountId,error:error instanceof Error ? error.message : String(error),stack:error instanceof Error ? error.stack : undefined},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
+    // #endregion
     console.error("Error disconnecting account:", error);
     return NextResponse.json(
       { message: "Failed to disconnect account" },

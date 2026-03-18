@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ActivityStatusBanner } from "@/components/ui/activity-status-banner";
@@ -28,6 +28,20 @@ export function ProjectsContainer() {
 
   const { run, startPolling } = usePipelineStatus(accountId, handlePipelineComplete);
   const { status: syncStatus } = useSyncStatus(accountId);
+
+  const prevRunSnapshot = useRef({ accountsFound: 0, stage: "" });
+  useEffect(() => {
+    const found = run?.accountsFound ?? 0;
+    const stage = run?.stage ?? "";
+    const prev = prevRunSnapshot.current;
+    const changed =
+      (found > 0 && found !== prev.accountsFound) ||
+      (stage !== "" && stage !== prev.stage);
+    if (changed) {
+      prevRunSnapshot.current = { accountsFound: found, stage };
+      refetchProjects();
+    }
+  }, [run?.accountsFound, run?.stage, refetchProjects]);
 
   const handleRunAnalysis = async () => {
     if (!accountId) return;
