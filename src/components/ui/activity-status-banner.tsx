@@ -20,14 +20,17 @@ export function ActivityStatusBanner({
   pipelineRun,
 }: ActivityStatusBannerProps) {
   const isSyncing = syncStatus?.syncStatus === "SYNCING";
+  const isScanned = syncStatus?.syncStatus === "SCANNED" && !pipelineRun;
   const isRunning = pipelineRun?.status === "RUNNING";
 
-  if (!isSyncing && !isRunning) return null;
+  if (!isSyncing && !isScanned && !isRunning) return null;
 
   const segments: string[] = [];
 
   if (isSyncing) {
-    segments.push("Scanning emails…");
+    segments.push("Syncing emails…");
+  } else if (isScanned) {
+    segments.push("Preparing inbox…");
   }
 
   if (isRunning) {

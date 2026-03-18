@@ -1,8 +1,9 @@
-import { invokeClaudeOnBedrock } from "@/lib/bedrock/client";
+import { invokeClaudeOnBedrock, type BedrockModel } from "@/lib/bedrock/client";
 import prisma from "@/lib/prisma/client";
 
 const BATCH_SIZE = 2;
 const BODY_TRUNCATE_LENGTH = 500;
+const EXPLORATION_MODEL: BedrockModel = "haiku";
 
 const EXPLORATION_SYSTEM = `You are a CRM analyst. Given email conversations with a sales/vendor organization, extract structured insights about the commercial relationship.
 
@@ -87,7 +88,7 @@ export class SalesExplorationService {
         },
       },
       orderBy: { date: "desc" },
-      take: 20,
+      take: 10,
     });
 
     const emailContext = recentMessages
@@ -112,6 +113,7 @@ Body: ${bodyText}
         system: EXPLORATION_SYSTEM,
         messages: [{ role: "user", content: prompt }],
         maxTokens: 1024,
+        model: EXPLORATION_MODEL,
       });
 
       const insights = parseExplorationResponse(response);

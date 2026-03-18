@@ -56,7 +56,7 @@ export function useProjects(accountId: string | null, isActive = false) {
 
     const interval = setInterval(() => {
       fetchProjects(true);
-    }, 3000);
+    }, 1500);
 
     return () => clearInterval(interval);
   }, [fetchProjects, isActive]);

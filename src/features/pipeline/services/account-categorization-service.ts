@@ -6,7 +6,7 @@ import {
   type ProjectCategory,
 } from "@/features/projects/config/categories";
 
-const DOMAINS_PER_CALL = 16;
+const DOMAINS_PER_CALL = 30;
 const CATEGORIZATION_MODEL: BedrockModel = "haiku";
 
 const PERSONAL_DOMAINS = new Set([
@@ -81,13 +81,13 @@ export class AccountCategorizationService {
                 some: { type: "TO", address: { contains: `@${account.domain}` } },
               },
             },
-            select: { subject: true, snippet: true },
+            select: { subject: true },
             orderBy: { date: "desc" },
-            take: 10,
+            take: 5,
           });
 
           const emailSummary = recentMessages
-            .map((m) => `- Subject: ${m.subject || "(no subject)"} | Preview: ${m.snippet || ""}`)
+            .map((m) => `- ${m.subject || "(no subject)"}`)
             .join("\n");
 
           return {
