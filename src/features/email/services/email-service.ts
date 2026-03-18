@@ -8,8 +8,8 @@ import { GmailApiService } from "./gmail-api-service";
 import { GmailOAuthService } from "./gmail-oauth-service";
 
 export class EmailService {
-  static initiateOAuthConnection(userId: string) {
-    const state = GmailOAuthService.encodeState({ userId });
+  static initiateOAuthConnection(userId: string, returnTo: string = "/") {
+    const state = GmailOAuthService.encodeState({ userId, returnTo });
     const authUrl = GmailOAuthService.getAuthUrl(state);
     return { authUrl };
   }

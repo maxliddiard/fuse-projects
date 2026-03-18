@@ -10,7 +10,8 @@ export function useConnectGmail() {
   const connect = async () => {
     try {
       setConnecting(true);
-      const { authUrl } = await initiateGmailConnection();
+      const returnTo = window.location.pathname;
+      const { authUrl } = await initiateGmailConnection(returnTo);
       window.location.href = authUrl;
     } catch (error) {
       console.error("Failed to initiate Gmail connection:", error);
