@@ -21,19 +21,18 @@ export function ProjectsContainer() {
 
   const { trigger, triggering } = useTriggerPipeline();
 
-  const { run, startPolling } = usePipelineStatus(accountId);
+  const { run } = usePipelineStatus(accountId);
   const { status: syncStatus } = useSyncStatus(accountId);
 
   const isRunning = run?.status === "RUNNING";
   const isSyncing = syncStatus?.syncStatus === "SYNCING";
   const isActive = isRunning || isSyncing;
 
-  const { projects, loading: projectsLoading, refetch: refetchProjects } = useProjects(accountId, isActive);
+  const { projects, loading: projectsLoading } = useProjects(accountId, isActive);
 
   const handleRunAnalysis = async () => {
     if (!accountId) return;
     await trigger(accountId);
-    startPolling();
   };
 
   if (accountsLoading) {

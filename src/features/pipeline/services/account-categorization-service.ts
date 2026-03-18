@@ -41,15 +41,8 @@ interface DomainWithEmails {
 }
 
 export class AccountCategorizationService {
-  /**
-   * Categorizes accounts in batches. Unidirectional domains are auto-classified
-   * as OTHER without an LLM call. Bidirectional domains are sent to the LLM
-   * in multi-domain batches. After each batch, calls onBatchDone with IDs of
-   * any newly-categorized SALES accounts so exploration can start in parallel.
-   */
   static async categorizeAccounts(
     emailAccountId: string,
-    onBatchDone?: (salesAccountIds: string[]) => void,
   ): Promise<{ categorized: number; autoSkipped: number }> {
     const uncategorized = await prisma.discoveredAccount.findMany({
       where: {
@@ -107,7 +100,6 @@ export class AccountCategorizationService {
 
       const results = await this.categorizeBatch(domainsWithEmails);
 
-      const batchSalesIds: string[] = [];
       const now = new Date();
 
       for (const item of domainsWithEmails) {
@@ -121,13 +113,6 @@ export class AccountCategorizationService {
         });
 
         categorized++;
-        if (category === "SALES") {
-          batchSalesIds.push(item.accountId);
-        }
-      }
-
-      if (batchSalesIds.length > 0 && onBatchDone) {
-        onBatchDone(batchSalesIds);
       }
     }
 

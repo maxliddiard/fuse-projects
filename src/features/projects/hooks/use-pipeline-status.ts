@@ -42,10 +42,6 @@ export function usePipelineStatus(
     }
   }, [accountId]);
 
-  const startPolling = useCallback(() => {
-    // no-op — polling is now automatic
-  }, []);
-
   useEffect(() => {
     fetchStatus();
 
@@ -74,5 +70,5 @@ export function usePipelineStatus(
     };
   }, [fetchStatus, onComplete]);
 
-  return { run, loading, refetch: fetchStatus, startPolling };
+  return { run, loading, refetch: fetchStatus };
 }

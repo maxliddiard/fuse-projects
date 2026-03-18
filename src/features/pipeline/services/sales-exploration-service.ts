@@ -51,27 +51,6 @@ export class SalesExplorationService {
     return explored;
   }
 
-  /** Explore specific account IDs — used for parallel exploration during categorization */
-  static async exploreAccountsByIds(
-    emailAccountId: string,
-    accountIds: string[],
-  ): Promise<void> {
-    const accounts = await prisma.discoveredAccount.findMany({
-      where: {
-        id: { in: accountIds },
-        emailAccountId,
-        salesInsights: null,
-      },
-    });
-
-    for (let i = 0; i < accounts.length; i += BATCH_SIZE) {
-      const batch = accounts.slice(i, i + BATCH_SIZE);
-      await Promise.allSettled(
-        batch.map((account) => this.exploreOne(account.id, emailAccountId, account.domain)),
-      );
-    }
-  }
-
   private static async exploreOne(
     accountId: string,
     emailAccountId: string,
