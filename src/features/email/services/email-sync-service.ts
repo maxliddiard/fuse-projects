@@ -122,10 +122,14 @@ export class EmailSyncService {
       totalFetched += messageIds.length;
       pageToken = response.nextPageToken ?? undefined;
 
-      // Update progress in DB so frontend can poll
+      // Update progress in DB so frontend can poll.
+      // Gmail's resultSizeEstimate is often wrong, so keep totalMessages >= syncedMessages.
       await prisma.emailAccount.update({
         where: { id: this.accountId },
-        data: { syncedMessages: totalSynced },
+        data: {
+          syncedMessages: totalSynced,
+          totalMessages: Math.max(estimatedTotal, totalSynced),
+        },
       });
 
       console.log(

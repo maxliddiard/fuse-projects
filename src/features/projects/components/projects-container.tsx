@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { SyncStatusBanner } from "@/features/email/components/sync-status-banner";
+import { ActivityStatusBanner } from "@/components/ui/activity-status-banner";
 import { useAccounts } from "@/features/email/hooks/use-accounts";
 import { useSyncStatus } from "@/features/email/hooks/use-sync-status";
 
@@ -11,7 +11,6 @@ import { usePipelineStatus } from "../hooks/use-pipeline-status";
 import { useProjects } from "../hooks/use-projects";
 import { useTriggerPipeline } from "../hooks/use-trigger-pipeline";
 
-import { PipelineStatusBanner } from "./pipeline-status-banner";
 import { ProjectCard } from "./project-card";
 
 export function ProjectsContainer() {
@@ -87,8 +86,7 @@ export function ProjectsContainer() {
         </Button>
       </div>
 
-      <SyncStatusBanner status={syncStatus} />
-      <PipelineStatusBanner run={run} />
+      <ActivityStatusBanner syncStatus={syncStatus} pipelineRun={run} />
 
       {projectsLoading ? (
         <p className="text-sm text-muted-foreground">

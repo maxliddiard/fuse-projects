@@ -19,7 +19,7 @@ import { AccountMailboxSidebar } from "./account-mailbox-sidebar";
 import { ComposeDialog } from "./compose-dialog";
 import { ConversationViewer } from "./conversation-viewer";
 import { MessageTable } from "./message-table";
-import { SyncStatusBanner } from "./sync-status-banner";
+import { ActivityStatusBanner } from "@/components/ui/activity-status-banner";
 
 interface EmailAccount {
   id: string;
@@ -162,7 +162,7 @@ export default function MailboxContainer() {
             {/* Sync status */}
             {syncStatus?.syncStatus !== "IDLE" && (
               <div className="px-4 pt-3">
-                <SyncStatusBanner status={syncStatus} />
+                <ActivityStatusBanner syncStatus={syncStatus} pipelineRun={null} />
               </div>
             )}
 
