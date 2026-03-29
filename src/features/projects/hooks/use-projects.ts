@@ -9,6 +9,7 @@ export interface DiscoveredAccountDTO {
   sourceType: string;
   domain: string | null;
   phoneNumber: string | null;
+  groupJid: string | null;
   displayName: string | null;
   emailAddresses: string | null;
   messageCount: number;
@@ -24,7 +25,7 @@ export interface DiscoveredAccountDTO {
   exploredAt: string | null;
 }
 
-export function useProjects(accountId: string | null, isActive = false) {
+export function useProjects(accountId: string | null, isActive = false, sourceType = "EMAIL") {
   const [projects, setProjects] = useState<DiscoveredAccountDTO[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +34,9 @@ export function useProjects(accountId: string | null, isActive = false) {
       if (!accountId) return;
       try {
         if (!silent) setLoading(true);
-        const response = await fetch(`/api/projects?accountId=${accountId}`);
+        const response = await fetch(
+          `/api/projects?accountId=${accountId}&sourceType=${sourceType}`,
+        );
         if (!response.ok) {
           if (!silent) setProjects([]);
           return;
@@ -47,7 +50,7 @@ export function useProjects(accountId: string | null, isActive = false) {
         if (!silent) setLoading(false);
       }
     },
-    [accountId],
+    [accountId, sourceType],
   );
 
   useEffect(() => {

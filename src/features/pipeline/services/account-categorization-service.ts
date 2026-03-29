@@ -6,6 +6,13 @@ import {
   type ProjectCategory,
 } from "@/features/projects/config/categories";
 
+import {
+  DEFAULT_EMAIL_CATEGORIZATION_PROMPT,
+  DEFAULT_WHATSAPP_CATEGORIZATION_PROMPT,
+  EMAIL_CATEGORIZATION_FORMAT_SUFFIX,
+  WHATSAPP_CATEGORIZATION_FORMAT_SUFFIX,
+} from "../constants";
+
 const DOMAINS_PER_CALL = 30;
 const CATEGORIZATION_MODEL: BedrockModel = "haiku";
 
@@ -14,30 +21,6 @@ const PERSONAL_DOMAINS = new Set([
   "icloud.com", "aol.com", "protonmail.com", "live.com",
   "me.com", "msn.com", "mail.com",
 ]);
-
-const EMAIL_CATEGORIZATION_SYSTEM = `You are an email analyst. You are given a list of domains that a user has SENT emails to, along with the subjects/snippets of those outbound messages. Classify each domain into one of these categories:
-
-- SALES: Healthcare providers, clinics, practices, potential clients, or companies with a direct commercial/sales relationship. The user is selling to or partnering with these organizations.
-- INVESTOR: Venture capital firms, angel investors, accelerators, investment funds, or fundraising-related contacts.
-- SUPPLIER: Vendors, service providers, contractors, or tools the user is buying from or evaluating (accounting firms, legal, SaaS tools, consultants).
-- MANAGEMENT: Internal team, HR systems, payroll, company admin, workspace/office management, internal tools.
-- OTHER: Personal contacts, generic email providers, newsletters, social media, or anything that doesn't fit the above.
-
-IMPORTANT: Domains like gmail.com, yahoo.com, outlook.com, hotmail.com are personal email — classify as OTHER unless the subjects clearly indicate otherwise.
-
-Respond with ONLY a valid JSON array, one entry per domain in the same order:
-[{"domain": "example.com", "category": "SALES"|"INVESTOR"|"SUPPLIER"|"MANAGEMENT"|"OTHER", "reason": "brief explanation"}, ...]`;
-
-const WHATSAPP_CATEGORIZATION_SYSTEM = `You are a communication analyst. You are given a list of WhatsApp contacts (by phone number) that a user has been messaging, along with recent message snippets from those conversations. Classify each contact into one of these categories:
-
-- SALES: Clients, potential clients, healthcare providers, clinics, practices, or companies with a direct commercial/sales relationship. The user is selling to or partnering with these contacts.
-- INVESTOR: Venture capital contacts, angel investors, accelerators, investment funds, or fundraising-related contacts.
-- SUPPLIER: Vendors, service providers, contractors, or tools the user is buying from or evaluating.
-- MANAGEMENT: Internal team members, company admin, HR, or internal operations contacts.
-- OTHER: Personal contacts, family, friends, or anything that doesn't fit the above.
-
-Respond with ONLY a valid JSON array, one entry per contact in the same order:
-[{"identifier": "+1234567890", "category": "SALES"|"INVESTOR"|"SUPPLIER"|"MANAGEMENT"|"OTHER", "reason": "brief explanation"}, ...]`;
 
 interface CategorizationResult {
   identifier: string;
@@ -62,6 +45,15 @@ export class AccountCategorizationService {
   static async categorizeAccounts(
     emailAccountId: string,
   ): Promise<{ categorized: number; autoSkipped: number }> {
+    const emailAccount = await prisma.emailAccount.findUnique({
+      where: { id: emailAccountId },
+      select: { categorizationPrompt: true },
+    });
+
+    const systemPrompt =
+      (emailAccount?.categorizationPrompt || DEFAULT_EMAIL_CATEGORIZATION_PROMPT) +
+      EMAIL_CATEGORIZATION_FORMAT_SUFFIX;
+
     const uncategorized = await prisma.discoveredAccount.findMany({
       where: {
         emailAccountId,
@@ -117,7 +109,7 @@ export class AccountCategorizationService {
         }),
       );
 
-      const results = await this.categorizeBatch(domainsWithEmails);
+      const results = await this.categorizeBatch(domainsWithEmails, systemPrompt);
 
       const now = new Date();
 
@@ -141,6 +133,15 @@ export class AccountCategorizationService {
   static async categorizeWhatsAppAccounts(
     whatsAppAccountId: string,
   ): Promise<{ categorized: number; autoSkipped: number }> {
+    const waAccount = await prisma.whatsAppAccount.findUnique({
+      where: { id: whatsAppAccountId },
+      select: { categorizationPrompt: true },
+    });
+
+    const systemPrompt =
+      (waAccount?.categorizationPrompt || DEFAULT_WHATSAPP_CATEGORIZATION_PROMPT) +
+      WHATSAPP_CATEGORIZATION_FORMAT_SUFFIX;
+
     const uncategorized = await prisma.discoveredAccount.findMany({
       where: {
         whatsAppAccountId,
@@ -159,33 +160,41 @@ export class AccountCategorizationService {
 
       const contactsWithMessages = await Promise.all(
         batch.map(async (account) => {
+          const isGroup = !!account.groupJid;
+          const identifier = isGroup ? account.groupJid! : account.phoneNumber!;
+
+          const whereClause = isGroup
+            ? { accountId: whatsAppAccountId, groupJid: account.groupJid! }
+            : {
+                accountId: whatsAppAccountId,
+                groupJid: null,
+                OR: [
+                  { fromPhone: account.phoneNumber! },
+                  { toPhone: account.phoneNumber! },
+                ],
+              };
+
           const recentMessages = await prisma.whatsAppMessage.findMany({
-            where: {
-              accountId: whatsAppAccountId,
-              OR: [
-                { fromPhone: account.phoneNumber! },
-                { toPhone: account.phoneNumber! },
-              ],
-            },
+            where: whereClause,
             select: { textBody: true, direction: true, fromName: true },
             orderBy: { timestamp: "desc" },
             take: 5,
           });
 
           const messageSummary = recentMessages
-            .map((m) => `- [${m.direction}] ${m.textBody || "(media message)"}`)
+            .map((m) => `- [${m.fromName || m.direction}] ${m.textBody || "(media message)"}`)
             .join("\n");
 
           return {
             accountId: account.id,
-            phoneNumber: account.phoneNumber!,
+            phoneNumber: identifier,
             contactName: account.displayName,
             messageSummary,
           } satisfies ContactWithMessages;
         }),
       );
 
-      const results = await this.categorizeWhatsAppBatch(contactsWithMessages);
+      const results = await this.categorizeWhatsAppBatch(contactsWithMessages, systemPrompt);
 
       const now = new Date();
 
@@ -208,6 +217,7 @@ export class AccountCategorizationService {
 
   private static async categorizeBatch(
     domains: DomainWithEmails[],
+    systemPrompt: string,
   ): Promise<CategorizationResult[]> {
     const domainBlocks = domains
       .map(
@@ -220,7 +230,7 @@ export class AccountCategorizationService {
 
     try {
       const response = await invokeClaudeOnBedrock({
-        system: EMAIL_CATEGORIZATION_SYSTEM,
+        system: systemPrompt,
         messages: [{ role: "user", content: prompt }],
         maxTokens: 256 * domains.length,
         model: CATEGORIZATION_MODEL,
@@ -239,6 +249,7 @@ export class AccountCategorizationService {
 
   private static async categorizeWhatsAppBatch(
     contacts: ContactWithMessages[],
+    systemPrompt: string,
   ): Promise<CategorizationResult[]> {
     const contactBlocks = contacts
       .map(
@@ -251,7 +262,7 @@ export class AccountCategorizationService {
 
     try {
       const response = await invokeClaudeOnBedrock({
-        system: WHATSAPP_CATEGORIZATION_SYSTEM,
+        system: systemPrompt,
         messages: [{ role: "user", content: prompt }],
         maxTokens: 256 * contacts.length,
         model: CATEGORIZATION_MODEL,

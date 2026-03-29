@@ -30,7 +30,10 @@ function BackgroundPicker() {
 
   return (
     <div>
-      <SectionHeader>Background</SectionHeader>
+      <SectionHeader>Appearance</SectionHeader>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Customize the look of your workspace
+      </p>
       <div className="mt-3">
         <Button onClick={cycle}>
           {BG_LABELS[bgKey]}
@@ -40,48 +43,55 @@ function BackgroundPicker() {
   );
 }
 
-export default function EmailSettingsPage() {
+export default function SettingsPage() {
   return (
     <AppLayout>
       <main className="mx-auto max-w-3xl px-8 py-16">
-        <div className="space-y-6">
-          <PageHeader
-            title="Settings"
-            size="sm"
-          />
+        <div className="space-y-8">
+          <PageHeader title="Settings" size="sm" />
+
           <Separator />
-          <div>
-            <SectionHeader>Email</SectionHeader>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Connect your Gmail account to send and receive emails
-            </p>
-          </div>
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner />
-              </div>
-            }
-          >
-            <EmailAccountsManager />
-          </Suspense>
+
+          <section className="space-y-4">
+            <div>
+              <SectionHeader>Email</SectionHeader>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Connect your Gmail account to discover and categorize contacts
+              </p>
+            </div>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner />
+                </div>
+              }
+            >
+              <EmailAccountsManager />
+            </Suspense>
+          </section>
+
           <Separator />
-          <div>
-            <SectionHeader>WhatsApp</SectionHeader>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Connect your WhatsApp Business account to analyze conversations
-            </p>
-          </div>
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner />
-              </div>
-            }
-          >
-            <WhatsAppAccountsManager />
-          </Suspense>
+
+          <section className="space-y-4">
+            <div>
+              <SectionHeader>WhatsApp</SectionHeader>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Import your WhatsApp conversations to discover and categorize contacts
+              </p>
+            </div>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-8">
+                  <LoadingSpinner />
+                </div>
+              }
+            >
+              <WhatsAppAccountsManager />
+            </Suspense>
+          </section>
+
           <Separator />
+
           <BackgroundPicker />
         </div>
       </main>

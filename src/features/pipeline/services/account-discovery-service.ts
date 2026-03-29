@@ -105,6 +105,7 @@ export class AccountDiscoveryService {
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
+    // Discover 1:1 contacts (exclude group messages)
     const phoneStats = await prisma.$queryRawUnsafe<PhoneStats[]>(
       `SELECT
         CASE WHEN direction = 'INBOUND' THEN fromPhone ELSE toPhone END as phone,
@@ -117,10 +118,11 @@ export class AccountDiscoveryService {
       FROM WhatsAppMessage
       WHERE accountId = ?
         AND timestamp >= ?
+        AND groupJid IS NULL
       GROUP BY CASE WHEN direction = 'INBOUND' THEN fromPhone ELSE toPhone END
       HAVING COUNT(*) >= 2`,
       whatsAppAccountId,
-      ninetyDaysAgo.toISOString(),
+      ninetyDaysAgo.getTime(),
     );
 
     const contacts = phoneStats.filter(
@@ -133,8 +135,8 @@ export class AccountDiscoveryService {
       const receivedCount = Number(stats.receivedCount);
       const isBidirectional = sentCount > 0 && receivedCount > 0;
 
-      const firstSeenAt = stats.firstSeen ? new Date(stats.firstSeen) : null;
-      const lastSeenAt = stats.lastSeen ? new Date(stats.lastSeen) : null;
+      const firstSeenAt = stats.firstSeen ? new Date(Number(stats.firstSeen)) : null;
+      const lastSeenAt = stats.lastSeen ? new Date(Number(stats.lastSeen)) : null;
 
       await prisma.discoveredAccount.upsert({
         where: {
@@ -167,6 +169,53 @@ export class AccountDiscoveryService {
       });
     }
 
-    return contacts.length;
+    // Discover groups from WhatsAppGroup table
+    const groups = await prisma.whatsAppGroup.findMany({
+      where: { accountId: whatsAppAccountId },
+    });
+
+    for (const group of groups) {
+      const groupMessageStats = await prisma.whatsAppMessage.aggregate({
+        where: {
+          accountId: whatsAppAccountId,
+          groupJid: group.jid,
+          timestamp: { gte: ninetyDaysAgo },
+        },
+        _count: true,
+        _min: { timestamp: true },
+        _max: { timestamp: true },
+      });
+
+      if (groupMessageStats._count < 2) continue;
+
+      await prisma.discoveredAccount.upsert({
+        where: {
+          whatsAppAccountId_groupJid: {
+            whatsAppAccountId,
+            groupJid: group.jid,
+          },
+        },
+        create: {
+          whatsAppAccountId,
+          sourceType: "WHATSAPP",
+          groupJid: group.jid,
+          displayName: group.name || group.jid,
+          messageCount: groupMessageStats._count,
+          sentCount: 0,
+          receivedCount: 0,
+          isBidirectional: true,
+          firstSeenAt: groupMessageStats._min.timestamp,
+          lastSeenAt: groupMessageStats._max.timestamp,
+        },
+        update: {
+          displayName: group.name || group.jid,
+          messageCount: groupMessageStats._count,
+          firstSeenAt: groupMessageStats._min.timestamp,
+          lastSeenAt: groupMessageStats._max.timestamp,
+        },
+      });
+    }
+
+    return contacts.length + groups.length;
   }
 }

@@ -4,6 +4,7 @@ import { getAuthenticatedUser } from "@/features/auth/server";
 import { PipelineOrchestrator } from "@/features/pipeline/server";
 import prisma from "@/lib/prisma/client";
 import { EmailAccountRepository } from "@/lib/repositories/email-account-repository";
+import { WhatsAppAccountRepository } from "@/lib/repositories/whatsapp-account-repository";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthenticatedUser();
@@ -21,24 +22,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Verify account ownership
-  const account = await EmailAccountRepository.findByIdAndUser(
+  const emailAccount = await EmailAccountRepository.findByIdAndUser(
     accountId,
     auth.user.id,
   );
-  if (!account) {
+  const waAccount = !emailAccount
+    ? await WhatsAppAccountRepository.findByIdAndUser(accountId, auth.user.id)
+    : null;
+
+  if (!emailAccount && !waAccount) {
     return NextResponse.json(
       { error: "Account not found" },
       { status: 404 },
     );
   }
 
-  // Check no pipeline already running
+  const isWhatsApp = !!waAccount;
+  const runWhere = isWhatsApp
+    ? { whatsAppAccountId: accountId }
+    : { emailAccountId: accountId };
+
   const existingRun = await prisma.pipelineRun.findFirst({
-    where: {
-      emailAccountId: accountId,
-      status: "RUNNING",
-    },
+    where: { ...runWhere, status: "RUNNING" },
   });
 
   if (existingRun) {
@@ -48,19 +53,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Create the run record first so we can return the ID immediately
   const run = await prisma.pipelineRun.create({
     data: {
-      emailAccountId: accountId,
+      ...runWhere,
+      sourceType: isWhatsApp ? "WHATSAPP" : "EMAIL",
       status: "RUNNING",
       stage: "DISCOVERY",
     },
   });
 
-  // Fire and forget — don't await the pipeline
-  PipelineOrchestrator.runForAccount(accountId).catch((err) => {
-    console.error("Pipeline run failed (fire-and-forget):", err);
-  });
+  if (isWhatsApp) {
+    PipelineOrchestrator.runForWhatsAppAccount(accountId).catch((err) => {
+      console.error("WhatsApp pipeline run failed:", err);
+    });
+  } else {
+    PipelineOrchestrator.runForAccount(accountId).catch((err) => {
+      console.error("Email pipeline run failed:", err);
+    });
+  }
 
   return NextResponse.json({ runId: run.id, status: "RUNNING" });
 }

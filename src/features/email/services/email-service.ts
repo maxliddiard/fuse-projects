@@ -19,7 +19,7 @@ export class EmailService {
     const tokens = await GmailOAuthService.exchangeCode(code);
     const userInfo = await GmailOAuthService.getUserInfo(tokens.accessToken);
 
-    const account = await EmailAccountRepository.upsertFromOAuth({
+    const { account, isNew } = await EmailAccountRepository.upsertFromOAuth({
       userId,
       emailAddress: userInfo.email,
       displayName: userInfo.name,
@@ -31,27 +31,30 @@ export class EmailService {
       vendorAccountId: userInfo.id,
     });
 
-    // Phase 1: Quick metadata scan → pipeline (discovery + categorization)
-    // Phase 2: Targeted full sync for SALES domains → exploration
-    EmailSyncService.fromAccountId(account.id)
+    if (!isNew) {
+      this.runPostConnectPipeline(account.id);
+    }
+
+    return { account, isNew };
+  }
+
+  static runPostConnectPipeline(accountId: string) {
+    EmailSyncService.fromAccountId(accountId)
       .then(async (syncService) => {
         await syncService.performQuickScan();
 
-        const runId = await PipelineOrchestrator.runForAccount(account.id);
+        const runId = await PipelineOrchestrator.runForAccount(accountId);
         console.log(`[Pipeline] Completed analysis run ${runId}`);
 
-        // Phase 2: SALES sync, then exploration + inbox sync in parallel
-        await syncService.syncSalesDomains(account.id);
+        await syncService.syncSalesDomains(accountId);
         await Promise.allSettled([
-          PipelineOrchestrator.runExploration(account.id),
+          PipelineOrchestrator.runExploration(accountId),
           syncService.performInitialSync(2),
         ]);
       })
       .catch((err) => {
         console.error("Background scan/pipeline failed:", err);
       });
-
-    return account;
   }
 
   static async listAccounts(userId: string) {

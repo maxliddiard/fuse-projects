@@ -10,11 +10,11 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { code, phoneNumber, phoneNumberId, waBusinessAccountId, displayName } = body;
+  const { code, phoneNumber, phoneNumberId, waBusinessAccountId, displayName, categorizationPrompt } = body;
 
-  if (!code || !phoneNumber || !phoneNumberId || !waBusinessAccountId) {
+  if (!code) {
     return NextResponse.json(
-      { error: "Missing required fields: code, phoneNumber, phoneNumberId, waBusinessAccountId" },
+      { error: "Missing required field: code" },
       { status: 400 },
     );
   }
@@ -23,10 +23,11 @@ export async function POST(request: NextRequest) {
     const account = await WhatsAppService.completeEmbeddedSignup({
       code,
       userId: auth.user.id,
-      phoneNumber,
-      phoneNumberId,
-      waBusinessAccountId,
+      phoneNumber: phoneNumber || "",
+      phoneNumberId: phoneNumberId || "",
+      waBusinessAccountId: waBusinessAccountId || "",
       displayName,
+      categorizationPrompt,
     });
 
     return NextResponse.json({

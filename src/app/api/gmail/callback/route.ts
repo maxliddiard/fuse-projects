@@ -29,7 +29,14 @@ export async function GET(request: NextRequest) {
   const redirectPath = returnTo || FALLBACK_REDIRECT;
 
   try {
-    await EmailService.completeOAuthCallback(code, state);
+    const { account, isNew } = await EmailService.completeOAuthCallback(code, state);
+    if (isNew) {
+      return buildRedirect(
+        redirectPath,
+        `success=new_account&accountId=${account.id}`,
+        baseUrl,
+      );
+    }
     return buildRedirect(redirectPath, "success=connected", baseUrl);
   } catch (err) {
     console.error("Gmail OAuth callback error:", err);

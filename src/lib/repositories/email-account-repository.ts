@@ -22,8 +22,18 @@ export class EmailAccountRepository {
     refreshToken?: string;
     tokenExpiresAt?: Date;
     vendorAccountId?: string;
-  }) {
-    return prisma.emailAccount.upsert({
+  }): Promise<{ account: Awaited<ReturnType<typeof prisma.emailAccount.upsert>>; isNew: boolean }> {
+    const existing = await prisma.emailAccount.findUnique({
+      where: {
+        userId_emailAddress: {
+          userId: params.userId,
+          emailAddress: params.emailAddress,
+        },
+      },
+      select: { id: true },
+    });
+
+    const account = await prisma.emailAccount.upsert({
       where: {
         userId_emailAddress: {
           userId: params.userId,
@@ -49,6 +59,8 @@ export class EmailAccountRepository {
         vendorAccountId: params.vendorAccountId,
       },
     });
+
+    return { account, isNew: !existing };
   }
 
   static async getCredentials(accountId: string) {

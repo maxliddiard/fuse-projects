@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/features/auth/server";
 import prisma from "@/lib/prisma/client";
 import { EmailAccountRepository } from "@/lib/repositories/email-account-repository";
+import { WhatsAppAccountRepository } from "@/lib/repositories/whatsapp-account-repository";
 
 export async function GET(request: NextRequest) {
   const auth = await getAuthenticatedUser();
@@ -20,12 +21,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Verify account ownership
-  const account = await EmailAccountRepository.findByIdAndUser(
+  const emailAccount = await EmailAccountRepository.findByIdAndUser(
     accountId,
     auth.user.id,
   );
-  if (!account) {
+  const waAccount = !emailAccount
+    ? await WhatsAppAccountRepository.findByIdAndUser(accountId, auth.user.id)
+    : null;
+
+  if (!emailAccount && !waAccount) {
     return NextResponse.json(
       { error: "Account not found" },
       { status: 404 },
@@ -33,7 +37,9 @@ export async function GET(request: NextRequest) {
   }
 
   const latestRun = await prisma.pipelineRun.findFirst({
-    where: { emailAccountId: accountId },
+    where: emailAccount
+      ? { emailAccountId: accountId }
+      : { whatsAppAccountId: accountId },
     orderBy: { createdAt: "desc" },
   });
 

@@ -66,9 +66,11 @@ export class SalesExplorationService {
     for (let i = 0; i < salesAccounts.length; i += BATCH_SIZE) {
       const batch = salesAccounts.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(
-        batch.map((account) =>
-          this.exploreOneWhatsApp(account.id, whatsAppAccountId, account.phoneNumber!),
-        ),
+        batch.map((account) => {
+          const identifier = account.groupJid || account.phoneNumber!;
+          const isGroup = !!account.groupJid;
+          return this.exploreOneWhatsApp(account.id, whatsAppAccountId, identifier, isGroup);
+        }),
       );
 
       for (const result of results) {
@@ -166,16 +168,17 @@ Body: ${bodyText}
   private static async exploreOneWhatsApp(
     accountId: string,
     whatsAppAccountId: string,
-    phoneNumber: string,
+    identifier: string,
+    isGroup = false,
   ): Promise<void> {
     const recentMessages = await prisma.whatsAppMessage.findMany({
-      where: {
-        accountId: whatsAppAccountId,
-        OR: [
-          { fromPhone: phoneNumber },
-          { toPhone: phoneNumber },
-        ],
-      },
+      where: isGroup
+        ? { accountId: whatsAppAccountId, groupJid: identifier }
+        : {
+            accountId: whatsAppAccountId,
+            groupJid: null,
+            OR: [{ fromPhone: identifier }, { toPhone: identifier }],
+          },
       select: {
         textBody: true,
         fromPhone: true,
@@ -201,7 +204,8 @@ Message: ${bodyText}
       })
       .join("\n");
 
-    const prompt = `WhatsApp contact: ${phoneNumber}\n\nConversation:\n${messageContext}\n\nExtract CRM insights about this sales relationship.`;
+    const label = isGroup ? `WhatsApp group: ${identifier}` : `WhatsApp contact: ${identifier}`;
+    const prompt = `${label}\n\nConversation:\n${messageContext}\n\nExtract CRM insights about this sales relationship.`;
 
     try {
       const response = await invokeClaudeOnBedrock({
@@ -223,7 +227,7 @@ Message: ${bodyText}
     } catch (error) {
       const isGone = (error as { code?: string })?.code === "P2025";
       if (!isGone) {
-        console.error(`Failed to explore WhatsApp contact ${phoneNumber}:`, error);
+        console.error(`Failed to explore WhatsApp ${isGroup ? "group" : "contact"} ${identifier}:`, error);
       }
     }
   }

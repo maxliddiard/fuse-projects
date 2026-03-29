@@ -37,7 +37,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
     ? PROJECT_CATEGORIES[project.category as ProjectCategory]
     : null;
 
-  const identifier = project.domain || project.phoneNumber;
+  const identifier = project.domain || project.phoneNumber || project.groupJid;
   const title = project.displayName || identifier;
   const subtitle =
     project.displayName && identifier !== project.displayName

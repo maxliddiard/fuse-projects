@@ -12,6 +12,7 @@ model User {
   email            String?           @unique
   password         String?
   emailVerifiedAt  DateTime?
+  historySyncDays  Int               @default(90)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   emailAccounts    EmailAccount[]
@@ -36,10 +37,11 @@ model EmailAccount {
   accessToken     String
   refreshToken    String?
   tokenExpiresAt  DateTime?
-  vendorAccountId String?
-  lastSyncedAt    DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  vendorAccountId        String?
+  categorizationPrompt   String?
+  lastSyncedAt           DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   mailboxes          Mailbox[]
   conversations      EmailConversation[]
@@ -159,6 +161,7 @@ model DiscoveredAccount {
   sourceType        String           @default("EMAIL") // EMAIL | WHATSAPP | BOTH
   domain            String?
   phoneNumber       String?
+  groupJid          String?
   displayName       String?
   emailAddresses    String?          // JSON array of addresses seen
   messageCount      Int              @default(0)
@@ -178,6 +181,7 @@ model DiscoveredAccount {
 
   @@unique([emailAccountId, domain])
   @@unique([whatsAppAccountId, phoneNumber])
+  @@unique([whatsAppAccountId, groupJid])
 }
 
 model PipelineRun {
@@ -210,20 +214,24 @@ model PipelineRun {
 // WhatsAppMessageType: text | image | document | audio | video | sticker | location | contacts | interactive | button | reaction
 
 model WhatsAppAccount {
-  id                  String   @id @default(uuid())
-  userId              String
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  phoneNumber         String
-  displayName         String?
-  waBusinessAccountId String
-  phoneNumberId       String
-  accessToken         String
-  status              String   @default("ACTIVE")
-  lastSyncedAt        DateTime?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber            String
+  displayName            String?
+  waBusinessAccountId    String?
+  phoneNumberId          String?
+  accessToken            String?
+  categorizationPrompt   String?
+  historySyncStatus      String    @default("PENDING") // PENDING | SYNCING | COMPLETED | FAILED
+  historySyncedAt         DateTime?
+  status                 String    @default("ACTIVE")
+  lastSyncedAt           DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   messages           WhatsAppMessage[]
+  groups             WhatsAppGroup[]
   discoveredAccounts DiscoveredAccount[]
   pipelineRuns       PipelineRun[]
 
@@ -238,14 +246,30 @@ model WhatsAppMessage {
   fromPhone   String
   toPhone     String
   fromName    String?
+  groupJid    String?
+  groupName   String?
   direction   String          // INBOUND | OUTBOUND
   messageType String          @default("text") // text | image | document | audio | video | etc.
   textBody    String?
   caption     String?
+  source      String          @default("WEBHOOK") // WEBHOOK | HISTORY_IMPORT
   timestamp   DateTime
   status      String          @default("delivered") // sent | delivered | read | failed
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+}
+
+model WhatsAppGroup {
+  id           String          @id @default(uuid())
+  accountId    String
+  account      WhatsAppAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  jid          String
+  name         String?
+  participants String?         // JSON array of phone numbers
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([accountId, jid])
 }
 
 model VerificationToken {

@@ -1,4 +1,5 @@
 import { ResourceNotFoundError } from "@/lib/errors";
+import prisma from "@/lib/prisma/client";
 import { WhatsAppAccountRepository } from "@/lib/repositories/whatsapp-account-repository";
 import { PipelineOrchestrator } from "@/features/pipeline/server";
 
@@ -23,23 +24,56 @@ export class WhatsAppService {
     phoneNumberId: string;
     waBusinessAccountId: string;
     displayName?: string;
+    categorizationPrompt?: string;
   }) {
     const accessToken = await WhatsAppOAuthService.exchangeCodeForToken(
       params.code,
     );
 
-    const account = await WhatsAppAccountRepository.upsertFromEmbeddedSignup({
-      userId: params.userId,
-      phoneNumber: params.phoneNumber,
-      displayName: params.displayName,
-      waBusinessAccountId: params.waBusinessAccountId,
-      phoneNumberId: params.phoneNumberId,
-      accessToken,
-    });
+    // Check if account already exists from history import (step 1)
+    const existing = params.phoneNumber
+      ? await prisma.whatsAppAccount.findUnique({
+          where: {
+            userId_phoneNumber: {
+              userId: params.userId,
+              phoneNumber: params.phoneNumber,
+            },
+          },
+        })
+      : null;
 
-    PipelineOrchestrator.runForWhatsAppAccount(account.id).catch((err) => {
-      console.error("WhatsApp background pipeline failed:", err);
-    });
+    let account;
+    if (existing) {
+      account = await prisma.whatsAppAccount.update({
+        where: { id: existing.id },
+        data: {
+          waBusinessAccountId: params.waBusinessAccountId || undefined,
+          phoneNumberId: params.phoneNumberId || undefined,
+          accessToken,
+          displayName: params.displayName || undefined,
+          categorizationPrompt: params.categorizationPrompt || undefined,
+          status: "ACTIVE",
+        },
+      });
+    } else {
+      account = await WhatsAppAccountRepository.upsertFromEmbeddedSignup({
+        userId: params.userId,
+        phoneNumber: params.phoneNumber,
+        displayName: params.displayName,
+        waBusinessAccountId: params.waBusinessAccountId,
+        phoneNumberId: params.phoneNumberId,
+        accessToken,
+        categorizationPrompt: params.categorizationPrompt,
+      });
+    }
+
+    // Only auto-run pipeline if history import hasn't already run it
+    const hasHistorySync = existing?.historySyncStatus === "COMPLETED";
+    if (!hasHistorySync) {
+      PipelineOrchestrator.runForWhatsAppAccount(account.id).catch((err) => {
+        console.error("WhatsApp background pipeline failed:", err);
+      });
+    }
 
     return account;
   }

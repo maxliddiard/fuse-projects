@@ -40,6 +40,9 @@ prisma/dev.db-journal
 prisma/dev.db-wal
 prisma/dev.db-shm
 
+# WhatsApp session data (Baileys auth state)
+/data/
+
 # vercel
 .vercel
 

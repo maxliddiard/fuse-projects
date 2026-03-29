@@ -18,9 +18,10 @@ export class WhatsAppAccountRepository {
     userId: string;
     phoneNumber: string;
     displayName?: string;
-    waBusinessAccountId: string;
-    phoneNumberId: string;
-    accessToken: string;
+    waBusinessAccountId?: string;
+    phoneNumberId?: string;
+    accessToken?: string;
+    categorizationPrompt?: string;
   }) {
     return prisma.whatsAppAccount.upsert({
       where: {
@@ -36,13 +37,14 @@ export class WhatsAppAccountRepository {
         waBusinessAccountId: params.waBusinessAccountId,
         phoneNumberId: params.phoneNumberId,
         accessToken: params.accessToken,
+        categorizationPrompt: params.categorizationPrompt,
         status: "ACTIVE",
       },
       update: {
         displayName: params.displayName,
-        waBusinessAccountId: params.waBusinessAccountId,
-        phoneNumberId: params.phoneNumberId,
-        accessToken: params.accessToken,
+        waBusinessAccountId: params.waBusinessAccountId ?? undefined,
+        phoneNumberId: params.phoneNumberId ?? undefined,
+        accessToken: params.accessToken ?? undefined,
         status: "ACTIVE",
       },
     });
@@ -58,12 +60,12 @@ export class WhatsAppAccountRepository {
       },
     });
 
-    if (!account) return null;
+    if (!account || !account.accessToken || !account.phoneNumberId) return null;
 
     return {
       accessToken: account.accessToken,
       phoneNumberId: account.phoneNumberId,
-      waBusinessAccountId: account.waBusinessAccountId,
+      waBusinessAccountId: account.waBusinessAccountId || "",
     };
   }
 

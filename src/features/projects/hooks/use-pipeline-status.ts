@@ -23,7 +23,6 @@ export function usePipelineStatus(
   const [run, setRun] = useState<PipelineRunDTO | null>(null);
   const [loading, setLoading] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const prevRunning = useRef(false);
 
   const fetchStatus = useCallback(async () => {
     if (!accountId) return null;
@@ -42,33 +41,42 @@ export function usePipelineStatus(
     }
   }, [accountId]);
 
-  useEffect(() => {
-    fetchStatus();
+  const startPolling = useCallback(() => {
+    if (intervalRef.current) return;
 
     intervalRef.current = setInterval(async () => {
       const current = await fetchStatus();
-      if (!current) return;
+      if (!current || current.status !== "RUNNING") {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
 
-      if (prevRunning.current && current.status !== "RUNNING") {
-        if (current.status === "COMPLETED") {
+        if (current?.status === "COMPLETED") {
           toast.success(
             `Analysis complete — ${current.accountsFound} accounts found, ${current.accountsCategorized} categorized, ${current.salesExplored} sales analyzed`,
           );
-        } else if (current.status === "FAILED") {
+          onComplete?.();
+        } else if (current?.status === "FAILED") {
           toast.error(current.error || "Pipeline failed");
+          onComplete?.();
         }
-        onComplete?.();
-
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        intervalRef.current = null;
       }
-      prevRunning.current = current.status === "RUNNING";
     }, 3000);
+  }, [fetchStatus, onComplete]);
+
+  useEffect(() => {
+    fetchStatus().then((current) => {
+      if (current?.status === "RUNNING") {
+        startPolling();
+      }
+    });
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
     };
-  }, [fetchStatus, onComplete]);
+  }, [fetchStatus, startPolling]);
 
-  return { run, loading, refetch: fetchStatus };
+  return { run, loading, refetch: fetchStatus, startPolling };
 }

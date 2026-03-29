@@ -3,6 +3,7 @@ export interface EmailAccountDTO {
   emailAddress: string;
   displayName: string | null;
   status: string;
+  categorizationPrompt: string | null;
   lastSyncedAt: string | null;
   createdAt: string;
 }

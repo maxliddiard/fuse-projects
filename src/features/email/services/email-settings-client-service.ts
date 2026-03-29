@@ -18,6 +18,34 @@ export async function initiateGmailConnection(returnTo?: string): Promise<{ auth
   return response.json();
 }
 
+export async function setupEmailAccount(
+  accountId: string,
+  categorizationPrompt?: string,
+): Promise<void> {
+  const response = await fetch(`/api/email/accounts/${accountId}/setup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ categorizationPrompt }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to set up email account");
+  }
+}
+
+export async function updateEmailAccountPrompt(
+  accountId: string,
+  categorizationPrompt: string | null,
+): Promise<void> {
+  const response = await fetch(`/api/email/accounts/${accountId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ categorizationPrompt }),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to update categorization prompt");
+  }
+}
+
 export async function disconnectEmailAccount(accountId: string): Promise<void> {
   const response = await fetch(`/api/email/accounts?id=${accountId}`, {
     method: "DELETE",

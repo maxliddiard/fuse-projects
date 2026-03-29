@@ -6,10 +6,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { CategorizationPromptEditor } from "@/components/ui/categorization-prompt-editor";
+import { SyncDaysPicker } from "@/components/ui/sync-days-picker";
+import { DEFAULT_EMAIL_CATEGORIZATION_PROMPT } from "@/features/pipeline/constants";
 
 import { useConnectGmail } from "../hooks/use-connect-gmail";
 import { useDisconnectAccount } from "../hooks/use-disconnect-account";
 import { useEmailAccounts } from "../hooks/use-email-accounts";
+import { updateEmailAccountPrompt } from "../services/email-settings-client-service";
 import type { EmailAccountDTO } from "../types";
 import { DisconnectDialog } from "./disconnect-dialog";
 import { EmailAccountsTable } from "./email-accounts-table";
@@ -55,11 +59,21 @@ export function EmailAccountsManager() {
           <Mail className="mr-2 h-4 w-4" />
           {connecting ? "Connecting..." : "Connect Gmail"}
         </Button>
-        <p className="text-sm text-muted-foreground">
-          {accounts.length} {accounts.length === 1 ? "account" : "accounts"}{" "}
-          connected
-        </p>
+        <SyncDaysPicker />
       </div>
+
+      {accounts.map((account) => (
+        <CategorizationPromptEditor
+          key={account.id}
+          accountId={account.id}
+          currentPrompt={account.categorizationPrompt}
+          defaultPrompt={DEFAULT_EMAIL_CATEGORIZATION_PROMPT}
+          onSave={async (id, prompt) => {
+            await updateEmailAccountPrompt(id, prompt);
+          }}
+          label="Customize how AI categorizes your conversations"
+        />
+      ))}
 
       <EmailAccountsTable
         accounts={accounts}

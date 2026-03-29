@@ -14,7 +14,6 @@ export function useSyncStatus(
 ) {
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const prevSyncing = useRef(false);
 
   const fetchStatus = useCallback(async () => {
     if (!accountId) return null;
@@ -39,26 +38,33 @@ export function useSyncStatus(
     }
   }, [accountId]);
 
-  useEffect(() => {
-    fetchStatus();
+  const startPolling = useCallback(() => {
+    if (intervalRef.current) return;
 
     intervalRef.current = setInterval(async () => {
       const current = await fetchStatus();
-      if (!current) return;
-
-      if (prevSyncing.current && current.syncStatus !== "SYNCING") {
+      if (!current || current.syncStatus !== "SYNCING") {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
         onComplete?.();
-
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        intervalRef.current = null;
       }
-      prevSyncing.current = current.syncStatus === "SYNCING";
     }, 2000);
+  }, [fetchStatus, onComplete]);
+
+  useEffect(() => {
+    fetchStatus().then((current) => {
+      if (current?.syncStatus === "SYNCING") {
+        startPolling();
+      }
+    });
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
     };
-  }, [fetchStatus, onComplete]);
+  }, [fetchStatus, startPolling]);
 
-  return { status, refetch: fetchStatus };
+  return { status, refetch: fetchStatus, startPolling };
 }

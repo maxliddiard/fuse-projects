@@ -4,8 +4,9 @@ import { Home, LogOut, Mail, PanelLeft, PanelLeftClose, Settings, Wand2 } from "
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
+import { useNewAccountSetup } from "@/features/email/hooks/use-new-account-setup";
 import { useBackgroundPreference } from "@/hooks/use-background-preference";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,11 @@ const navItems = [
   { label: "Emails", href: "/mailbox", icon: Mail },
   { label: "Settings", href: "/settings/email", icon: Settings },
 ] as const;
+
+function NewAccountSetupListener() {
+  useNewAccountSetup();
+  return null;
+}
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -97,6 +103,9 @@ export function AppLayout({ children }: AppLayoutProps) {
       </aside>
 
       <main className="flex-1 overflow-auto">{children}</main>
+      <Suspense fallback={null}>
+        <NewAccountSetupListener />
+      </Suspense>
     </div>
   );
 }
