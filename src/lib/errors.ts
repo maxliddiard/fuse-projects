@@ -142,6 +142,12 @@ export class EmailAccountNotFoundError extends ResourceNotFoundError {
   }
 }
 
+export class WhatsAppAccountNotFoundError extends ResourceNotFoundError {
+  constructor(accountId?: string) {
+    super("WhatsAppAccount", accountId);
+  }
+}
+
 export class RateLimitError extends OperationalError {
   public readonly retryAfter?: number;
 

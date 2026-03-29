@@ -37,7 +37,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex items-center gap-3 border-b border-border px-4 py-4">
           {!collapsed && (
             <span className="text-lg font-normal text-foreground whitespace-nowrap">
-              Fuse Projects
+              Team Projects
             </span>
           )}
           <button

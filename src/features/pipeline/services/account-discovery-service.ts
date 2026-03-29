@@ -8,6 +8,16 @@ interface DomainStats {
   addresses: string;
 }
 
+interface PhoneStats {
+  phone: string;
+  contactName: string | null;
+  messageCount: bigint | number;
+  sentCount: bigint | number;
+  receivedCount: bigint | number;
+  firstSeen: string | null;
+  lastSeen: string | null;
+}
+
 export class AccountDiscoveryService {
   static async discoverAccounts(emailAccountId: string): Promise<number> {
     const account = await prisma.emailAccount.findUniqueOrThrow({
@@ -19,9 +29,6 @@ export class AccountDiscoveryService {
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
     const cutoff = ninetyDaysAgo.getTime();
 
-    // Discover domains from TO addresses on sent messages.
-    // Every domain found here is bidirectional by construction —
-    // if we sent to them, there's two-way communication.
     const sentToStats = await prisma.$queryRawUnsafe<DomainStats[]>(
       `SELECT
         LOWER(SUBSTR(ma.address, INSTR(ma.address, '@') + 1)) as domain,
@@ -63,6 +70,7 @@ export class AccountDiscoveryService {
         },
         create: {
           emailAccountId,
+          sourceType: "EMAIL",
           domain: stats.domain,
           displayName: stats.domain,
           emailAddresses: addresses,
@@ -85,5 +93,80 @@ export class AccountDiscoveryService {
     }
 
     return domains.length;
+  }
+
+  static async discoverWhatsAppAccounts(whatsAppAccountId: string): Promise<number> {
+    const account = await prisma.whatsAppAccount.findUniqueOrThrow({
+      where: { id: whatsAppAccountId },
+      select: { phoneNumber: true },
+    });
+    const ownPhone = account.phoneNumber;
+
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const phoneStats = await prisma.$queryRawUnsafe<PhoneStats[]>(
+      `SELECT
+        CASE WHEN direction = 'INBOUND' THEN fromPhone ELSE toPhone END as phone,
+        MAX(fromName) as contactName,
+        COUNT(*) as messageCount,
+        SUM(CASE WHEN direction = 'OUTBOUND' THEN 1 ELSE 0 END) as sentCount,
+        SUM(CASE WHEN direction = 'INBOUND' THEN 1 ELSE 0 END) as receivedCount,
+        MIN(timestamp) as firstSeen,
+        MAX(timestamp) as lastSeen
+      FROM WhatsAppMessage
+      WHERE accountId = ?
+        AND timestamp >= ?
+      GROUP BY CASE WHEN direction = 'INBOUND' THEN fromPhone ELSE toPhone END
+      HAVING COUNT(*) >= 2`,
+      whatsAppAccountId,
+      ninetyDaysAgo.toISOString(),
+    );
+
+    const contacts = phoneStats.filter(
+      (r) => r.phone && r.phone !== ownPhone,
+    );
+
+    for (const stats of contacts) {
+      const messageCount = Number(stats.messageCount);
+      const sentCount = Number(stats.sentCount);
+      const receivedCount = Number(stats.receivedCount);
+      const isBidirectional = sentCount > 0 && receivedCount > 0;
+
+      const firstSeenAt = stats.firstSeen ? new Date(stats.firstSeen) : null;
+      const lastSeenAt = stats.lastSeen ? new Date(stats.lastSeen) : null;
+
+      await prisma.discoveredAccount.upsert({
+        where: {
+          whatsAppAccountId_phoneNumber: {
+            whatsAppAccountId,
+            phoneNumber: stats.phone,
+          },
+        },
+        create: {
+          whatsAppAccountId,
+          sourceType: "WHATSAPP",
+          phoneNumber: stats.phone,
+          displayName: stats.contactName || stats.phone,
+          messageCount,
+          sentCount,
+          receivedCount,
+          isBidirectional,
+          firstSeenAt,
+          lastSeenAt,
+        },
+        update: {
+          displayName: stats.contactName || stats.phone,
+          messageCount,
+          sentCount,
+          receivedCount,
+          isBidirectional,
+          firstSeenAt,
+          lastSeenAt,
+        },
+      });
+    }
+
+    return contacts.length;
   }
 }

@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Separator } from "@/components/ui/separator";
 import { EmailAccountsManager } from "@/features/email/components/email-accounts-manager";
+import { WhatsAppAccountsManager } from "@/features/whatsapp/components/whatsapp-accounts-manager";
 import {
   APP_BACKGROUNDS,
   BG_LABELS,
@@ -63,6 +64,22 @@ export default function EmailSettingsPage() {
             }
           >
             <EmailAccountsManager />
+          </Suspense>
+          <Separator />
+          <div>
+            <SectionHeader>WhatsApp</SectionHeader>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Connect your WhatsApp Business account to analyze conversations
+            </p>
+          </div>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-8">
+                <LoadingSpinner />
+              </div>
+            }
+          >
+            <WhatsAppAccountsManager />
           </Suspense>
           <Separator />
           <BackgroundPicker />

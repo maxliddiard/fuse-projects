@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fuse Projects",
+  title: "Team Projects",
   description: "Your central hub for managing projects and collaboration",
 };
 

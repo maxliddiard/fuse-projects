@@ -8,13 +8,14 @@ generator client {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  email           String?        @unique
-  password        String?
-  emailVerifiedAt DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  emailAccounts   EmailAccount[]
+  id               String            @id @default(uuid())
+  email            String?           @unique
+  password         String?
+  emailVerifiedAt  DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  emailAccounts    EmailAccount[]
+  whatsAppAccounts WhatsAppAccount[]
 }
 
 // AccountStatus: ACTIVE | ERROR | DISCONNECTED
@@ -150,40 +151,48 @@ model MessageAddress {
 }
 
 model DiscoveredAccount {
-  id              String   @id @default(uuid())
-  emailAccountId  String
-  emailAccount    EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
-  domain          String
-  displayName     String?
-  emailAddresses  String        // JSON array of addresses seen
-  messageCount    Int           @default(0)
-  sentCount       Int           @default(0)
-  receivedCount   Int           @default(0)
-  isBidirectional Boolean       @default(false)
-  firstSeenAt     DateTime?
-  lastSeenAt      DateTime?
-  category        String?       // SALES | MANAGEMENT | OTHER
-  categoryReason  String?
-  salesInsights   String?       // JSON: { contacts, dealStage, recentActivitySummary, keyTopics }
-  pipelineRunId   String?
-  categorizedAt   DateTime?
-  exploredAt      DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                String   @id @default(uuid())
+  emailAccountId    String?
+  emailAccount      EmailAccount?    @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+  whatsAppAccountId String?
+  whatsAppAccount   WhatsAppAccount? @relation(fields: [whatsAppAccountId], references: [id], onDelete: Cascade)
+  sourceType        String           @default("EMAIL") // EMAIL | WHATSAPP | BOTH
+  domain            String?
+  phoneNumber       String?
+  displayName       String?
+  emailAddresses    String?          // JSON array of addresses seen
+  messageCount      Int              @default(0)
+  sentCount         Int              @default(0)
+  receivedCount     Int              @default(0)
+  isBidirectional   Boolean          @default(false)
+  firstSeenAt       DateTime?
+  lastSeenAt        DateTime?
+  category          String?          // SALES | INVESTOR | SUPPLIER | MANAGEMENT | OTHER
+  categoryReason    String?
+  salesInsights     String?          // JSON: { contacts, dealStage, recentActivitySummary, keyTopics }
+  pipelineRunId     String?
+  categorizedAt     DateTime?
+  exploredAt        DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 
   @@unique([emailAccountId, domain])
+  @@unique([whatsAppAccountId, phoneNumber])
 }
 
 model PipelineRun {
   id                  String   @id @default(uuid())
-  emailAccountId      String
-  emailAccount        EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
-  status              String   @default("RUNNING")   // RUNNING | COMPLETED | FAILED
-  stage               String   @default("DISCOVERY") // DISCOVERY | CATEGORIZATION | EXPLORATION | COMPLETED
-  accountsFound       Int      @default(0)
-  accountsCategorized Int      @default(0)
-  autoSkippedCount    Int      @default(0)
-  salesExplored       Int      @default(0)
+  emailAccountId      String?
+  emailAccount        EmailAccount?    @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+  whatsAppAccountId   String?
+  whatsAppAccount     WhatsAppAccount? @relation(fields: [whatsAppAccountId], references: [id], onDelete: Cascade)
+  sourceType          String           @default("EMAIL") // EMAIL | WHATSAPP
+  status              String           @default("RUNNING")   // RUNNING | COMPLETED | FAILED
+  stage               String           @default("DISCOVERY") // DISCOVERY | CATEGORIZATION | EXPLORATION | COMPLETED
+  accountsFound       Int              @default(0)
+  accountsCategorized Int              @default(0)
+  autoSkippedCount    Int              @default(0)
+  salesExplored       Int              @default(0)
   discoveryMs         Int?
   categorizationMs    Int?
   explorationMs       Int?
@@ -193,6 +202,50 @@ model PipelineRun {
   completedAt         DateTime?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// WhatsApp Business Cloud API
+// WhatsAppAccountStatus: ACTIVE | ERROR | DISCONNECTED
+// WhatsAppMessageDirection: INBOUND | OUTBOUND
+// WhatsAppMessageType: text | image | document | audio | video | sticker | location | contacts | interactive | button | reaction
+
+model WhatsAppAccount {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber         String
+  displayName         String?
+  waBusinessAccountId String
+  phoneNumberId       String
+  accessToken         String
+  status              String   @default("ACTIVE")
+  lastSyncedAt        DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  messages           WhatsAppMessage[]
+  discoveredAccounts DiscoveredAccount[]
+  pipelineRuns       PipelineRun[]
+
+  @@unique([userId, phoneNumber])
+}
+
+model WhatsAppMessage {
+  id          String          @id @default(uuid())
+  accountId   String
+  account     WhatsAppAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  externalId  String?         @unique
+  fromPhone   String
+  toPhone     String
+  fromName    String?
+  direction   String          // INBOUND | OUTBOUND
+  messageType String          @default("text") // text | image | document | audio | video | etc.
+  textBody    String?
+  caption     String?
+  timestamp   DateTime
+  status      String          @default("delivered") // sent | delivered | read | failed
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 model VerificationToken {

@@ -4,10 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 
 export interface DiscoveredAccountDTO {
   id: string;
-  emailAccountId: string;
-  domain: string;
+  emailAccountId: string | null;
+  whatsAppAccountId: string | null;
+  sourceType: string;
+  domain: string | null;
+  phoneNumber: string | null;
   displayName: string | null;
-  emailAddresses: string;
+  emailAddresses: string | null;
   messageCount: number;
   sentCount: number;
   receivedCount: number;
