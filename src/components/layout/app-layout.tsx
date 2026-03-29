@@ -33,7 +33,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { background } = useBackgroundPreference();
 
   return (
-    <div className="flex min-h-screen bg-background" style={{ background }}>
+    <div className="flex h-screen bg-background" style={{ background }}>
       <aside
         className={cn(
           "flex shrink-0 flex-col overflow-hidden border-r border-border bg-card/60 transition-[width] duration-200",
